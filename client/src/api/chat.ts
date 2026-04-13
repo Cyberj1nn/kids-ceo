@@ -17,6 +17,10 @@ export interface Message {
   senderId: string;
   senderName: string;
   senderRole: string;
+  replyToId?: string | null;
+  replyToText?: string | null;
+  replyToSender?: string | null;
+  read?: boolean;
 }
 
 export async function getChatRooms(): Promise<ChatRoom[]> {
@@ -31,8 +35,8 @@ export async function getMessages(roomId: string, before?: string, limit = 30): 
   return data;
 }
 
-export async function sendMessage(roomId: string, text: string): Promise<Message> {
-  const { data } = await api.post<Message>(`/chat/rooms/${roomId}/messages`, { text });
+export async function sendMessage(roomId: string, text: string, replyToId?: string | null): Promise<Message> {
+  const { data } = await api.post<Message>(`/chat/rooms/${roomId}/messages`, { text, replyToId });
   return data;
 }
 

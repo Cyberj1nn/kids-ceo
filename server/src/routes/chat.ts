@@ -2,7 +2,7 @@ import { Router, Response } from 'express';
 import { query } from '../db/pool';
 import { authJWT } from '../middleware/auth';
 import { AuthRequest } from '../types';
-import { broadcastMessage, notifyUnread } from '../socket';
+import { broadcastMessage, broadcastRoomRead, notifyUnread } from '../socket';
 
 const router = Router();
 
@@ -73,26 +73,31 @@ router.get('/rooms/:id/messages', authJWT, async (req: AuthRequest, res: Respons
     let messagesQuery: string;
     let params: any[];
 
-    if (before) {
-      messagesQuery = `
+    const baseSelect = `
         SELECT m.id, m.text, m.created_at AS "createdAt",
                m.sender_id AS "senderId",
                u.first_name || ' ' || u.last_name AS "senderName",
-               u.role AS "senderRole"
+               u.role AS "senderRole",
+               m.reply_to_id AS "replyToId",
+               rm.text AS "replyToText",
+               ru.first_name || ' ' || ru.last_name AS "replyToSender",
+               EXISTS(
+                 SELECT 1 FROM message_read_status mrs
+                 WHERE mrs.message_id = m.id AND mrs.user_id != m.sender_id
+               ) AS "read"
         FROM messages m
         JOIN users u ON u.id = m.sender_id
+        LEFT JOIN messages rm ON rm.id = m.reply_to_id
+        LEFT JOIN users ru ON ru.id = rm.sender_id`;
+
+    if (before) {
+      messagesQuery = `${baseSelect}
         WHERE m.chat_room_id = $1 AND m.created_at < $2
         ORDER BY m.created_at DESC
         LIMIT $3`;
       params = [roomId, before, limit];
     } else {
-      messagesQuery = `
-        SELECT m.id, m.text, m.created_at AS "createdAt",
-               m.sender_id AS "senderId",
-               u.first_name || ' ' || u.last_name AS "senderName",
-               u.role AS "senderRole"
-        FROM messages m
-        JOIN users u ON u.id = m.sender_id
+      messagesQuery = `${baseSelect}
         WHERE m.chat_room_id = $1
         ORDER BY m.created_at DESC
         LIMIT $2`;
@@ -117,7 +122,7 @@ router.post('/rooms/:id/messages', authJWT, async (req: AuthRequest, res: Respon
   try {
     const roomId = req.params.id as string;
     const userId = req.user!.userId;
-    const { text } = req.body;
+    const { text, replyToId } = req.body;
 
     if (!text || !text.trim()) {
       res.status(400).json({ error: 'Текст сообщения обязателен' });
@@ -134,23 +139,51 @@ router.post('/rooms/:id/messages', authJWT, async (req: AuthRequest, res: Respon
       return;
     }
 
+    // Валидация reply_to_id
+    let validReplyToId: string | null = null;
+    if (replyToId) {
+      const { rows: replyRows } = await query(
+        'SELECT id FROM messages WHERE id = $1 AND chat_room_id = $2',
+        [replyToId, roomId]
+      );
+      if (replyRows.length > 0) validReplyToId = replyToId;
+    }
+
     const { rows } = await query(
-      `INSERT INTO messages (chat_room_id, sender_id, text)
-       VALUES ($1, $2, $3)
-       RETURNING id, text, created_at AS "createdAt", sender_id AS "senderId"`,
-      [roomId, userId, text.trim()]
+      `INSERT INTO messages (chat_room_id, sender_id, text, reply_to_id)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, text, created_at AS "createdAt", sender_id AS "senderId", reply_to_id AS "replyToId"`,
+      [roomId, userId, text.trim(), validReplyToId]
     );
 
-    // Получаем имя отправителя
+    // Получаем имя отправителя + reply-цитату
     const { rows: userRows } = await query(
       `SELECT first_name || ' ' || last_name AS "senderName", role AS "senderRole" FROM users WHERE id = $1`,
       [userId]
     );
 
+    let replyToText: string | null = null;
+    let replyToSender: string | null = null;
+    if (validReplyToId) {
+      const { rows: replyInfo } = await query(
+        `SELECT rm.text, ru.first_name || ' ' || ru.last_name AS sender_name
+         FROM messages rm JOIN users ru ON ru.id = rm.sender_id
+         WHERE rm.id = $1`,
+        [validReplyToId]
+      );
+      if (replyInfo.length > 0) {
+        replyToText = replyInfo[0].text;
+        replyToSender = replyInfo[0].sender_name;
+      }
+    }
+
     const message = {
       ...rows[0],
       senderName: userRows[0].senderName,
       senderRole: userRows[0].senderRole,
+      replyToText,
+      replyToSender,
+      read: false,
     };
 
     // Автоматически отмечаем как прочитанное для отправителя
@@ -187,7 +220,7 @@ router.put('/rooms/:id/read', authJWT, async (req: AuthRequest, res: Response) =
     const roomId = req.params.id as string;
     const userId = req.user!.userId;
 
-    await query(
+    const { rowCount } = await query(
       `INSERT INTO message_read_status (message_id, user_id)
        SELECT m.id, $2
        FROM messages m
@@ -199,6 +232,11 @@ router.put('/rooms/:id/read', authJWT, async (req: AuthRequest, res: Response) =
          )`,
       [roomId, userId]
     );
+
+    // Уведомить отправителей что их сообщения прочитаны
+    if (rowCount && rowCount > 0) {
+      broadcastRoomRead(roomId, userId);
+    }
 
     res.json({ message: 'Прочитано' });
   } catch (err) {

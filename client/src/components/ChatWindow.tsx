@@ -6,6 +6,7 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import './ChatWindow.css';
 
+
 interface ChatWindowProps {
   roomId: string;
 }
@@ -18,6 +19,7 @@ export default function ChatWindow({ roomId }: ChatWindowProps) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [typingUser, setTypingUser] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shouldScrollRef = useRef(true);
@@ -73,12 +75,24 @@ export default function ChatWindow({ roomId }: ChatWindowProps) {
       typingTimeoutRef.current = setTimeout(() => setTypingUser(null), 2000);
     };
 
+    const handleRoomRead = (data: { roomId: string; readByUserId: string }) => {
+      if (data.roomId !== roomId || data.readByUserId === user?.id) return;
+      // Помечаем все свои сообщения как прочитанные
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.senderId === user?.id && !m.read ? { ...m, read: true } : m
+        )
+      );
+    };
+
     socket.on('message:new', handleNewMessage);
     socket.on('message:typing', handleTyping);
+    socket.on('room:read', handleRoomRead);
 
     return () => {
       socket.off('message:new', handleNewMessage);
       socket.off('message:typing', handleTyping);
+      socket.off('room:read', handleRoomRead);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
   }, [socket, roomId, user?.id]);
@@ -113,7 +127,8 @@ export default function ChatWindow({ roomId }: ChatWindowProps) {
   const handleSend = async (text: string) => {
     try {
       shouldScrollRef.current = true;
-      const msg = await sendMessage(roomId, text);
+      const msg = await sendMessage(roomId, text, replyTo?.id);
+      setReplyTo(null);
       setMessages((prev) => {
         if (prev.some((m) => m.id === msg.id)) return prev;
         return [...prev, msg];
@@ -122,6 +137,9 @@ export default function ChatWindow({ roomId }: ChatWindowProps) {
       console.error('Send error:', err);
     }
   };
+
+  const handleReply = (msg: Message) => setReplyTo(msg);
+  const cancelReply = () => setReplyTo(null);
 
   // Typing indicator
   const emitTypingRef = useRef<number>(0);
@@ -146,8 +164,14 @@ export default function ChatWindow({ roomId }: ChatWindowProps) {
         onScrollTop={loadMore}
         loading={loadingMore}
         typingUser={typingUser ? 'Кто-то' : null}
+        onReply={handleReply}
       />
-      <MessageInput onSend={handleSend} onTyping={handleTyping} />
+      <MessageInput
+        onSend={handleSend}
+        onTyping={handleTyping}
+        replyTo={replyTo}
+        onCancelReply={cancelReply}
+      />
     </div>
   );
 }

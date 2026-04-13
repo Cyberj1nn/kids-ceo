@@ -79,6 +79,14 @@ export function broadcastMessage(roomId: string, message: any) {
 }
 
 /**
+ * Сообщить всем участникам комнаты, что userId прочитал сообщения.
+ */
+export function broadcastRoomRead(roomId: string, readByUserId: string) {
+  if (!io) return;
+  io.to(roomId).emit('room:read', { roomId, readByUserId });
+}
+
+/**
  * Отправить обновление badge непрочитанных конкретному пользователю.
  */
 export async function notifyUnread(userId: string) {

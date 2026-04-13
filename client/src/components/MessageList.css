@@ -14,6 +14,36 @@
   font-size: 13px;
 }
 
+/* =====================
+   Разделитель по дате
+   ===================== */
+
+.message-date-sep {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 4px;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.message-date-sep::before,
+.message-date-sep::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.message-date-sep span {
+  white-space: nowrap;
+  padding: 0 4px;
+}
+
+/* =====================
+   Сообщение
+   ===================== */
+
 .message {
   display: flex;
   justify-content: flex-start;
@@ -24,6 +54,28 @@
   align-self: flex-end;
   justify-content: flex-end;
 }
+
+.message--grouped {
+  margin-top: -4px;
+}
+
+/* =====================
+   Inner: bubble + reply btn
+   ===================== */
+
+.message-inner {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.message--own .message-inner {
+  flex-direction: row-reverse;
+}
+
+/* =====================
+   Bubble
+   ===================== */
 
 .message-bubble {
   background: #fff;
@@ -38,6 +90,18 @@
   border-color: #c7d2fe;
   border-radius: 16px 16px 4px 16px;
 }
+
+.message--grouped:not(.message--own) .message-bubble {
+  border-radius: 4px 16px 16px 4px;
+}
+
+.message--grouped.message--own .message-bubble {
+  border-radius: 16px 4px 4px 16px;
+}
+
+/* =====================
+   Sender
+   ===================== */
 
 .message-sender {
   display: flex;
@@ -60,6 +124,45 @@
   color: #6b7280;
 }
 
+/* =====================
+   Reply quote в bubble
+   ===================== */
+
+.message-reply-quote {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 10px;
+  border-left: 3px solid #6c63ff;
+  background: rgba(108, 99, 255, 0.06);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.message--own .message-reply-quote {
+  border-left-color: #818cf8;
+  background: rgba(108, 99, 255, 0.1);
+}
+
+.message-reply-quote-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6c63ff;
+}
+
+.message-reply-quote-text {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
+/* =====================
+   Text
+   ===================== */
+
 .message-text {
   font-size: 14px;
   line-height: 1.5;
@@ -68,12 +171,74 @@
   word-break: break-word;
 }
 
+/* =====================
+   Meta: время + прочитано
+   ===================== */
+
+.message-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 4px;
+}
+
 .message-time {
   font-size: 11px;
   color: #9ca3af;
-  margin-top: 4px;
-  text-align: right;
 }
+
+.message-read-status {
+  font-size: 11px;
+  color: #9ca3af;
+  line-height: 1;
+}
+
+.message-read-status--read {
+  color: #6c63ff;
+}
+
+/* =====================
+   Кнопка ответа
+   ===================== */
+
+.message-reply-btn {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+  padding: 0;
+}
+
+.message-inner:hover .message-reply-btn {
+  opacity: 1;
+}
+
+.message-reply-btn:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+@media (max-width: 768px) {
+  .message-reply-btn {
+    opacity: 1;
+  }
+}
+
+/* =====================
+   Typing
+   ===================== */
 
 .message-typing {
   font-size: 13px;

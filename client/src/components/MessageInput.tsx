@@ -1,4 +1,5 @@
 import { useState, useRef, type KeyboardEvent } from 'react';
+import type { Message } from '../api/chat';
 import './MessageInput.css';
 
 const EMOJI_LIST = ['😀', '😂', '😊', '😍', '👍', '👏', '🔥', '❤️', '🎉', '✅', '😢', '🤔', '😎', '🙏', '💪', '⭐'];
@@ -7,9 +8,11 @@ interface MessageInputProps {
   onSend: (text: string) => void;
   onTyping: () => void;
   disabled?: boolean;
+  replyTo?: Message | null;
+  onCancelReply?: () => void;
 }
 
-export default function MessageInput({ onSend, onTyping, disabled }: MessageInputProps) {
+export default function MessageInput({ onSend, onTyping, disabled, replyTo, onCancelReply }: MessageInputProps) {
   const [text, setText] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -28,6 +31,9 @@ export default function MessageInput({ onSend, onTyping, disabled }: MessageInpu
       e.preventDefault();
       handleSend();
     }
+    if (e.key === 'Escape' && replyTo) {
+      onCancelReply?.();
+    }
   };
 
   const handleChange = (value: string) => {
@@ -42,6 +48,23 @@ export default function MessageInput({ onSend, onTyping, disabled }: MessageInpu
 
   return (
     <div className="message-input">
+      {replyTo && (
+        <div className="message-input-reply-bar">
+          <div className="message-input-reply-content">
+            <span className="message-input-reply-name">{replyTo.senderName}</span>
+            <span className="message-input-reply-text">{replyTo.text}</span>
+          </div>
+          <button
+            className="message-input-reply-cancel"
+            onClick={onCancelReply}
+            type="button"
+            title="Отменить ответ"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {showEmoji && (
         <div className="message-input-emoji-panel">
           {EMOJI_LIST.map((e) => (
