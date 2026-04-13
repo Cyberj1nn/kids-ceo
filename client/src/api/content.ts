@@ -1,5 +1,18 @@
 import api from './axios';
 
+export type BlockType = 'text' | 'video' | 'image' | 'file';
+
+export interface ContentBlock {
+  id: string;
+  type: BlockType;
+  content?: string;      // HTML для text-блока
+  url?: string;          // Rutube URL для video-блока
+  fileUrl?: string;      // Путь к файлу для image/file-блоков
+  originalName?: string;
+  fileSize?: number;
+  fileType?: string;     // 'image' | 'pdf' | 'audio' | 'other'
+}
+
 export interface Category {
   id: number;
   name: string;
@@ -28,6 +41,7 @@ export interface Attachment {
 
 export interface ContentDetail extends ContentListItem {
   body: string;
+  blocks: ContentBlock[] | null;
   categoryId: number | null;
   tabId: number;
   updatedAt: string;
@@ -70,9 +84,18 @@ export interface CreateContentPayload {
   body?: string;
   contentType?: string;
   videoUrl?: string;
+  blocks?: ContentBlock[];
   categoryId?: number | null;
   tabId: number;
   sortOrder?: number;
+}
+
+export interface FileUploadResult {
+  fileUrl: string;
+  fileType: string;
+  fileSize: number;
+  originalName: string;
+  id?: string;
 }
 
 export async function createContent(payload: CreateContentPayload) {
@@ -90,7 +113,7 @@ export async function deleteContent(id: string) {
   return data;
 }
 
-export async function uploadFile(file: File, contentItemId?: string): Promise<Attachment & { fileUrl: string }> {
+export async function uploadFile(file: File, contentItemId?: string): Promise<FileUploadResult> {
   const form = new FormData();
   form.append('file', file);
   if (contentItemId) form.append('contentItemId', contentItemId);

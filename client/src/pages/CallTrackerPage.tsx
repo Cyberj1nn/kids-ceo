@@ -14,6 +14,7 @@ interface UserOption {
   id: string;
   firstName: string;
   lastName: string;
+  role: string;
 }
 
 export default function CallTrackerPage() {
@@ -33,7 +34,9 @@ export default function CallTrackerPage() {
 
   useEffect(() => {
     if (!isAdmin) return;
-    api.get('/users').then(({ data }) => setUsers(data)).catch(() => {});
+    api.get('/users').then(({ data }) => {
+      setUsers((data as UserOption[]).filter((u) => u.role === 'user'));
+    }).catch(() => {});
   }, [isAdmin]);
 
   const loadEntries = useCallback(() => {
@@ -86,30 +89,46 @@ export default function CallTrackerPage() {
     loadEntries();
   };
 
+  const viewingOther = isAdmin && selectedUserId !== user?.id;
+
   return (
     <div className="ct-page">
       <div className="ct-header">
-        <h1 className="ct-title">Трекер созвонов</h1>
-        <div className="ct-header-actions">
-          {isAdmin && users.length > 0 && (
-            <select
-              className="ct-user-select"
-              value={selectedUserId}
-              onChange={(e) => setSelectedUserId(e.target.value)}
-            >
-              <option value={user?.id}>Мои записи</option>
-              {users.filter((u) => u.id !== user?.id).map((u) => (
-                <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
-              ))}
-            </select>
-          )}
-          {isAdmin && (
-            <button className="ct-add-btn" onClick={() => setAdding(true)}>
-              + Добавить
-            </button>
-          )}
-        </div>
+        <h1 className="ct-title">
+          Трекер созвонов
+          {viewingOther && (() => {
+            const sel = users.find((u) => u.id === selectedUserId);
+            return sel ? (
+              <span className="ct-title-user">— {sel.firstName} {sel.lastName}</span>
+            ) : null;
+          })()}
+        </h1>
+        {isAdmin && (
+          <button className="ct-add-btn" onClick={() => setAdding(true)}>
+            + Добавить
+          </button>
+        )}
       </div>
+
+      {isAdmin && (
+        <div className="ct-user-tabs">
+          <button
+            className={`ct-user-tab ${selectedUserId === user?.id ? 'ct-user-tab--active' : ''}`}
+            onClick={() => setSelectedUserId(user?.id || '')}
+          >
+            Мои записи
+          </button>
+          {users.map((u) => (
+            <button
+              key={u.id}
+              className={`ct-user-tab ${selectedUserId === u.id ? 'ct-user-tab--active' : ''}`}
+              onClick={() => setSelectedUserId(u.id)}
+            >
+              {u.firstName} {u.lastName}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Форма добавления */}
       {adding && (

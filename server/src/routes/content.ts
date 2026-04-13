@@ -158,7 +158,8 @@ router.get(
   async (req: AuthRequest, res: Response) => {
     try {
       const { rows } = await query(
-        `SELECT ci.id, ci.title, ci.body, ci.content_type AS "contentType",
+        `SELECT ci.id, ci.title, ci.body, ci.blocks,
+                ci.content_type AS "contentType",
                 ci.video_url AS "videoUrl", ci.sort_order AS "sortOrder",
                 ci.category_id AS "categoryId", ci.tab_id AS "tabId",
                 ci.created_at AS "createdAt", ci.updated_at AS "updatedAt",
@@ -201,7 +202,7 @@ router.post(
   ADMIN_ROLES,
   async (req: AuthRequest, res: Response) => {
     try {
-      const { title, body, contentType, videoUrl, categoryId, tabId, sortOrder } = req.body;
+      const { title, body, contentType, videoUrl, blocks, categoryId, tabId, sortOrder } = req.body;
 
       if (!title || !tabId) {
         res.status(400).json({ error: 'Заголовок и tabId обязательны' });
@@ -227,15 +228,27 @@ router.post(
         }
       }
 
+      // Если переданы blocks — определяем contentType автоматически
+      let resolvedContentType = contentType || 'text';
+      if (blocks && Array.isArray(blocks)) {
+        const hasVideo = blocks.some((b: any) => b.type === 'video');
+        resolvedContentType = hasVideo ? 'video' : 'text';
+      } else if (videoUrl) {
+        resolvedContentType = 'video';
+      }
+
+      const blocksJson = blocks && Array.isArray(blocks) ? JSON.stringify(blocks) : null;
+
       const { rows } = await query(
-        `INSERT INTO content_items (title, body, content_type, video_url, category_id, tab_id, author_id, sort_order)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `INSERT INTO content_items (title, body, content_type, video_url, blocks, category_id, tab_id, author_id, sort_order)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING id, title, content_type AS "contentType", created_at AS "createdAt"`,
         [
           title,
           body || '',
-          contentType || 'text',
+          resolvedContentType,
           videoUrl || null,
+          blocksJson,
           categoryId || null,
           tabId,
           req.user!.userId,
@@ -261,7 +274,7 @@ router.put(
   ADMIN_ROLES,
   async (req: AuthRequest, res: Response) => {
     try {
-      const { title, body, contentType, videoUrl, sortOrder } = req.body;
+      const { title, body, contentType, videoUrl, blocks, sortOrder } = req.body;
 
       const { rows: existing } = await query(
         'SELECT id FROM content_items WHERE id = $1 AND deleted_at IS NULL',
@@ -278,7 +291,16 @@ router.put(
 
       if (title !== undefined) { fields.push(`title = $${idx++}`); values.push(title); }
       if (body !== undefined) { fields.push(`body = $${idx++}`); values.push(body); }
-      if (contentType !== undefined) { fields.push(`content_type = $${idx++}`); values.push(contentType); }
+      if (blocks !== undefined) {
+        fields.push(`blocks = $${idx++}`);
+        values.push(blocks !== null ? JSON.stringify(blocks) : null);
+        // Автоматически обновляем content_type при наличии blocks
+        const hasVideo = Array.isArray(blocks) && blocks.some((b: any) => b.type === 'video');
+        fields.push(`content_type = $${idx++}`);
+        values.push(hasVideo ? 'video' : 'text');
+      } else {
+        if (contentType !== undefined) { fields.push(`content_type = $${idx++}`); values.push(contentType); }
+      }
       if (videoUrl !== undefined) { fields.push(`video_url = $${idx++}`); values.push(videoUrl || null); }
       if (sortOrder !== undefined) { fields.push(`sort_order = $${idx++}`); values.push(sortOrder); }
 

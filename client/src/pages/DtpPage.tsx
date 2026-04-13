@@ -17,6 +17,17 @@ const MONTH_NAMES = [
   'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь',
 ];
 
+function getCurrentWeek(year: number, month: number): number {
+  const today = new Date();
+  const firstDay = new Date(year, month - 1, 1);
+  const dayOfWeek = firstDay.getDay();
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const firstMonday = new Date(year, month - 1, 1 + mondayOffset);
+  const diffDays = Math.floor((today.getTime() - firstMonday.getTime()) / (1000 * 60 * 60 * 24));
+  const weekNum = Math.floor(diffDays / 7) + 1;
+  return Math.min(Math.max(weekNum, 1), 5);
+}
+
 function getWeekDates(year: number, month: number, week: number) {
   // Первый день месяца
   const firstDay = new Date(year, month - 1, 1);
@@ -49,7 +60,7 @@ export default function DtpPage() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
-  const [week, setWeek] = useState(1);
+  const [week, setWeek] = useState(() => getCurrentWeek(now.getFullYear(), now.getMonth() + 1));
   const [entries, setEntries] = useState<DtpEntry[]>([]);
   const [selectedUserId, setSelectedUserId] = useState(user?.id || '');
   const [users, setUsers] = useState<UserOption[]>([]);

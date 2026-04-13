@@ -47,8 +47,8 @@
   margin-bottom: 6px;
 }
 
-.content-editor-field input[type="text"],
-.content-editor-field input[type="url"] {
+.content-editor-field input[type='text'],
+.content-editor-field input[type='url'] {
   width: 100%;
   padding: 12px 16px;
   border: 1px solid #d1d5db;
@@ -56,6 +56,7 @@
   font-size: 15px;
   outline: none;
   transition: border-color 0.2s;
+  box-sizing: border-box;
 }
 
 .content-editor-field input:focus {
@@ -63,11 +64,267 @@
   box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
 }
 
+/* =====================
+   Список блоков
+   ===================== */
+
+.block-list {
+  margin-bottom: 12px;
+}
+
+.block-list-empty {
+  padding: 24px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 14px;
+  background: #f9fafb;
+  border: 2px dashed #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.block-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.block-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.block-type-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.block-control-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.block-btn {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.block-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.block-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.block-btn--danger {
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.block-btn--danger:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+.block-content {
+  padding: 16px;
+}
+
+/* Видео блок */
+.block-video {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.block-url-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.block-url-input:focus {
+  border-color: #6c63ff;
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+}
+
+.block-video-preview {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Файловый блок */
+.block-file {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.block-uploading {
+  color: #6b7280;
+  font-size: 14px;
+  padding: 8px 0;
+}
+
+.block-upload-error {
+  color: #dc2626;
+  font-size: 14px;
+}
+
+.block-image-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.block-image-preview img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  object-fit: contain;
+}
+
+.block-image-name {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.block-file-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.block-file-size {
+  margin-left: auto;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.block-upload-btn {
+  padding: 8px 16px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s;
+  align-self: flex-start;
+}
+
+.block-upload-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.block-upload-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Добавить блок */
+.block-add-section {
+  margin-bottom: 24px;
+}
+
+.block-add-btn {
+  width: 100%;
+  padding: 12px;
+  background: #f9fafb;
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.block-add-btn:hover {
+  border-color: #6c63ff;
+  color: #6c63ff;
+  background: #f5f3ff;
+}
+
+.block-add-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.block-add-option {
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.block-add-option:hover {
+  background: #eef2ff;
+  border-color: #6c63ff;
+  color: #6c63ff;
+}
+
+.block-add-cancel {
+  color: #9ca3af;
+  margin-left: auto;
+}
+
+.block-add-cancel:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #6b7280;
+}
+
+/* =====================
+   Действия формы
+   ===================== */
+
 .content-editor-actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 8px;
 }
 
 .content-editor-btn-primary {

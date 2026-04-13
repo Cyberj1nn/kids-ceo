@@ -12,7 +12,7 @@ async function seed() {
     { slug: 'podcasts', name: 'Подкасты', sort_order: 4 },
     { slug: 'books', name: 'Книги', sort_order: 5 },
     { slug: 'films', name: 'Фильмы', sort_order: 6 },
-    { slug: 'program-360', name: 'Программа Руководитель 360', sort_order: 7 },
+    { slug: 'program-360', name: 'Руководитель 360', sort_order: 7 },
     { slug: 'marathons', name: 'Марафоны', sort_order: 8 },
     { slug: 'personal-chat', name: 'Личная беседа', sort_order: 9 },
     { slug: 'dtp', name: 'ДТП', sort_order: 10 },

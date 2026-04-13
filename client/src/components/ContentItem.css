@@ -162,3 +162,28 @@
 .content-item-audio audio {
   width: 100%;
 }
+
+/* =====================
+   Блочный формат
+   ===================== */
+
+.content-item-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.content-item-block {
+  /* Обёртка для одного блока */
+}
+
+.content-item-block-image-link {
+  display: block;
+}
+
+.content-item-block-image {
+  max-width: 100%;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  display: block;
+}
