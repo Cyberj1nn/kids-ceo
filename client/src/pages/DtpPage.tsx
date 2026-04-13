@@ -9,6 +9,7 @@ interface UserOption {
   id: string;
   firstName: string;
   lastName: string;
+  role: string;
 }
 
 const MONTH_NAMES = [
@@ -57,11 +58,11 @@ export default function DtpPage() {
 
   const dates = getWeekDates(year, month, week);
 
-  // Загрузить список пользователей для админов
+  // Загрузить список пользователей (только role=user) для админов
   useEffect(() => {
     if (!isAdmin) return;
     api.get('/users').then(({ data }) => {
-      setUsers(data);
+      setUsers((data as UserOption[]).filter((u) => u.role === 'user'));
     }).catch(() => {});
   }, [isAdmin]);
 
@@ -98,24 +99,41 @@ export default function DtpPage() {
     suggestions: 'Предложения',
   };
 
+  const selectedUser = users.find((u) => u.id === selectedUserId);
+  const viewingOther = isAdmin && selectedUserId !== user?.id;
+
   return (
     <div className="dtp-page">
       <div className="dtp-page-header">
-        <h1 className="dtp-page-title">ДТП</h1>
-
-        {isAdmin && users.length > 0 && (
-          <select
-            className="dtp-page-user-select"
-            value={selectedUserId}
-            onChange={(e) => setSelectedUserId(e.target.value)}
-          >
-            <option value={user?.id}>Мои записи</option>
-            {users.filter((u) => u.id !== user?.id).map((u) => (
-              <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
-            ))}
-          </select>
-        )}
+        <h1 className="dtp-page-title">
+          ДТП
+          {viewingOther && selectedUser && (
+            <span className="dtp-page-title-user">
+              — {selectedUser.firstName} {selectedUser.lastName}
+            </span>
+          )}
+        </h1>
       </div>
+
+      {isAdmin && (
+        <div className="dtp-user-tabs">
+          <button
+            className={`dtp-user-tab ${selectedUserId === user?.id ? 'dtp-user-tab--active' : ''}`}
+            onClick={() => setSelectedUserId(user?.id || '')}
+          >
+            Мои записи
+          </button>
+          {users.map((u) => (
+            <button
+              key={u.id}
+              className={`dtp-user-tab ${selectedUserId === u.id ? 'dtp-user-tab--active' : ''}`}
+              onClick={() => setSelectedUserId(u.id)}
+            >
+              {u.firstName} {u.lastName}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Селектор месяца */}
       <div className="dtp-month-selector">
@@ -165,7 +183,7 @@ export default function DtpPage() {
         entries={weekEntries}
         dates={dates}
         onUpdated={loadEntries}
-        readOnly={isAdmin && selectedUserId !== user?.id}
+        readOnly={viewingOther}
         onAudit={isAdmin ? openAudit : undefined}
       />
 
