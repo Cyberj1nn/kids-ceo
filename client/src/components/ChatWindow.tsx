@@ -19,7 +19,7 @@ export default function ChatWindow({ roomId }: ChatWindowProps) {
   const [hasMore, setHasMore] = useState(true);
   const [typingUser, setTypingUser] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shouldScrollRef = useRef(true);
 
   // Загрузка начальных сообщений
