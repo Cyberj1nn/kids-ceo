@@ -109,11 +109,21 @@ async function seed() {
   const superadminPassword = 'admin123'; // Сменить после первого входа!
   const passwordHash = await bcrypt.hash(superadminPassword, 10);
 
-  await pool.query(
+  const { rows: superadminRows } = await pool.query(
     `INSERT INTO users (first_name, last_name, login, password_hash, role)
      VALUES ($1, $2, $3, $4, $5)
-     ON CONFLICT (login) DO NOTHING`,
+     ON CONFLICT (login) DO UPDATE SET login = EXCLUDED.login
+     RETURNING id`,
     ['Super', 'Admin', superadminLogin, passwordHash, 'superadmin']
+  );
+  const superadminId = superadminRows[0].id;
+
+  // Добавить суперадмина в общую комнату
+  await pool.query(
+    `INSERT INTO chat_room_members (chat_room_id, user_id)
+     VALUES ('00000000-0000-0000-0000-000000000001', $1)
+     ON CONFLICT DO NOTHING`,
+    [superadminId]
   );
   console.log(`  Superadmin seeded (login: ${superadminLogin}, password: ${superadminPassword})`);
 }
