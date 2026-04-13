@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   getCategories,
@@ -23,7 +23,8 @@ const TAB_TITLES: Record<string, string> = {
 };
 
 export default function ContentPage() {
-  const { tab } = useParams<{ tab: string }>();
+  const location = useLocation();
+  const tab = location.pathname.split('/').filter(Boolean).pop() || '';
   const { user } = useAuth();
   const isAdmin = ['superadmin', 'admin', 'mentor'].includes(user?.role || '');
 
