@@ -1,0 +1,123 @@
+.personal-chat-loading,
+.personal-chat-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #9ca3af;
+  font-size: 15px;
+}
+
+.personal-chat-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 20px;
+}
+
+.personal-chat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.personal-chat-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.personal-chat-card:hover {
+  border-color: #6c63ff;
+  box-shadow: 0 2px 8px rgba(108, 99, 255, 0.08);
+}
+
+.personal-chat-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.personal-chat-card-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 4px;
+}
+
+.personal-chat-card-preview {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.personal-chat-card-preview--empty {
+  font-style: italic;
+  color: #9ca3af;
+}
+
+.personal-chat-card-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+
+.personal-chat-card-time {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.personal-chat-card-badge {
+  background: #6c63ff;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+}
+
+/* Активная беседа */
+.personal-chat-active {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.personal-chat-back {
+  background: none;
+  border: none;
+  color: #6c63ff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 8px;
+  align-self: flex-start;
+}
+
+.personal-chat-back:hover {
+  text-decoration: underline;
+}
+
+.personal-chat-room-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 12px;
+}

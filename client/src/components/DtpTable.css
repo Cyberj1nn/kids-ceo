@@ -1,0 +1,193 @@
+/* Desktop table */
+.dtp-table-desktop {
+  overflow-x: auto;
+}
+
+.dtp-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.dtp-table-header-label {
+  width: 120px;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.dtp-table-header-date {
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a2e;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  min-width: 100px;
+}
+
+.dtp-table-label {
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+
+.dtp-table-row--achievements .dtp-table-label {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.dtp-table-row--difficulties .dtp-table-label {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.dtp-table-row--suggestions .dtp-table-label {
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.dtp-table-cell {
+  border: 1px solid #e5e7eb;
+  padding: 4px;
+  vertical-align: top;
+  position: relative;
+}
+
+.dtp-table-row--achievements .dtp-table-cell {
+  background: #fafff7;
+}
+
+.dtp-table-row--difficulties .dtp-table-cell {
+  background: #fffbfb;
+}
+
+.dtp-table-row--suggestions .dtp-table-cell {
+  background: #f8faff;
+}
+
+.dtp-table-input {
+  width: 100%;
+  min-height: 60px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.4;
+  resize: vertical;
+  outline: none;
+  padding: 4px;
+}
+
+.dtp-table-input:focus {
+  background: #fff;
+  box-shadow: inset 0 0 0 2px rgba(108, 99, 255, 0.3);
+  border-radius: 4px;
+}
+
+.dtp-table-saving {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  color: #6c63ff;
+  font-size: 10px;
+  animation: pulse 0.8s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.dtp-table-audit-btn {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  opacity: 0.4;
+  padding: 2px;
+  transition: opacity 0.15s;
+}
+
+.dtp-table-audit-btn:hover {
+  opacity: 1;
+}
+
+/* Mobile cards */
+.dtp-table-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .dtp-table-desktop {
+    display: none;
+  }
+
+  .dtp-table-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .dtp-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .dtp-card-date {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .dtp-card-field {
+    margin-bottom: 10px;
+    position: relative;
+  }
+
+  .dtp-card-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .dtp-card-field--achievements label { color: #166534; }
+  .dtp-card-field--difficulties label { color: #991b1b; }
+  .dtp-card-field--suggestions label { color: #1e40af; }
+
+  .dtp-card-field textarea {
+    width: 100%;
+    min-height: 50px;
+    padding: 8px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+  }
+
+  .dtp-card-field--achievements textarea { background: #fafff7; }
+  .dtp-card-field--difficulties textarea { background: #fffbfb; }
+  .dtp-card-field--suggestions textarea { background: #f8faff; }
+
+  .dtp-card-field textarea:focus {
+    border-color: #6c63ff;
+  }
+}

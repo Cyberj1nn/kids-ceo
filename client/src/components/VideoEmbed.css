@@ -1,0 +1,35 @@
+.video-embed {
+  margin: 16px 0;
+}
+
+.video-embed iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.video-embed-fallback {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #6c63ff;
+}
+
+.video-embed--link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #eef2ff;
+  color: #6c63ff;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+
+.video-embed--link a:hover {
+  background: #e0e7ff;
+}

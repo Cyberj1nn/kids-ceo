@@ -1,0 +1,3 @@
+Replace icon-192.png and icon-512.png with real app icons.
+Required sizes: 192x192 and 512x512 (PNG).
+These are used for PWA install and splash screens.

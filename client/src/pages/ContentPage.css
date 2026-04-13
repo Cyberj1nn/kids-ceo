@@ -1,0 +1,147 @@
+.content-page-loading {
+  text-align: center;
+  padding: 60px;
+  color: #6b7280;
+}
+
+.content-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.content-page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.content-page-create {
+  padding: 10px 20px;
+  background: #6c63ff;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.content-page-create:hover {
+  background: #5a52d5;
+}
+
+.content-page-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.category-chip {
+  padding: 8px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  background: #fff;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.category-chip:hover {
+  border-color: #6c63ff;
+  color: #6c63ff;
+}
+
+.category-chip--active {
+  background: #6c63ff;
+  color: #fff;
+  border-color: #6c63ff;
+}
+
+.content-page-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.content-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.content-card:hover {
+  border-color: #6c63ff;
+  box-shadow: 0 2px 8px rgba(108, 99, 255, 0.08);
+}
+
+.content-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 6px;
+}
+
+.content-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.content-card-badge {
+  padding: 2px 8px;
+  background: #eef2ff;
+  border-radius: 8px;
+  color: #6c63ff;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.content-page-empty {
+  text-align: center;
+  padding: 48px;
+  color: #9ca3af;
+  font-size: 15px;
+}
+
+.content-page-more {
+  margin-top: 16px;
+  padding: 12px 24px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  align-self: center;
+  transition: background 0.15s;
+}
+
+.content-page-more:hover {
+  background: #e5e7eb;
+}
+
+@media (max-width: 768px) {
+  .content-page-categories {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 8px;
+  }
+
+  .category-chip {
+    white-space: nowrap;
+  }
+}
