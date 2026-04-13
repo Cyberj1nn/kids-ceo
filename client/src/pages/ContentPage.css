@@ -59,6 +59,10 @@
   color: #6c63ff;
 }
 
+.category-chip--active:hover {
+  color: #fff;
+}
+
 .category-chip--active {
   background: #6c63ff;
   color: #fff;
