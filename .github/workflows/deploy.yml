@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -11,23 +14,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install & build client
-        working-directory: ./client
-        run: |
-          npm ci
-          npm run build
-
-      - name: Install & build server
-        working-directory: ./server
-        run: |
-          npm ci
-          npm run build
 
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1
@@ -41,13 +27,13 @@ jobs:
 
             # Client
             cd client
-            npm ci --production=false
+            npm install
             npm run build
             cd ..
 
             # Server
             cd server
-            npm ci
+            npm install
             npm run build
             npm run migrate
             cd ..
