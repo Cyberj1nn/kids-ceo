@@ -11,7 +11,8 @@ import { AuthRequest } from '../types';
 const router = Router();
 const ADMIN_ROLES = roleCheck(['superadmin', 'admin', 'mentor']);
 
-const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
+// __dirname в prod = dist/routes/, поэтому ../.. поднимаемся на уровень server/uploads
+const UPLOADS_DIR = path.join(__dirname, '..', '..', 'uploads');
 
 // MIME-типы и лимиты
 const ALLOWED_MIMES: Record<string, { fileType: string; maxSize: number }> = {
@@ -151,7 +152,7 @@ router.delete(
         return;
       }
 
-      const filePath = path.join(__dirname, '..', rows[0].file_url);
+      const filePath = path.join(__dirname, '..', '..', rows[0].file_url);
       await fs.unlink(filePath).catch(() => {});
       await query('DELETE FROM attachments WHERE id = $1', [req.params.id as string]);
 

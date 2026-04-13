@@ -70,7 +70,8 @@ const authLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter);
 
 // Статика для загруженных файлов
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// __dirname в prod = dist/, поэтому .. поднимаемся на уровень server/uploads
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // --- Роуты ---
 
