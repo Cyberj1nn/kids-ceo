@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, Fragment } from 'react';
 import type { Message } from '../api/chat';
 import { useAuth } from '../context/AuthContext';
 import './MessageList.css';
@@ -78,7 +78,7 @@ const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
             isSameDay(msg.createdAt, nextMsg.createdAt);
 
           return (
-            <div key={msg.id}>
+            <Fragment key={msg.id}>
               {showDateSep && (
                 <div className="message-date-sep">
                   <span>{formatDateLabel(msg.createdAt)}</span>
@@ -133,7 +133,7 @@ const MessageList = forwardRef<HTMLDivElement, MessageListProps>(
                   </button>
                 </div>
               </div>
-            </div>
+            </Fragment>
           );
         })}
 
