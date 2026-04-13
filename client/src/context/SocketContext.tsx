@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useAuth } from './AuthContext';
 
 // В dev — явно localhost:3000, в prod — тот же хост (nginx проксирует /socket.io/)
-const WS_URL = import.meta.env.VITE_WS_URL || (import.meta.env.DEV ? 'http://localhost:3000' : '');
+const WS_URL = import.meta.env.VITE_WS_URL || (import.meta.env.DEV ? 'http://localhost:3000' : window.location.origin);
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 const SocketContext = createContext<Socket | null>(null);
