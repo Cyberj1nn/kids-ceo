@@ -70,7 +70,9 @@ export default function PersonalChatPage() {
           ← К списку бесед
         </button>
         <h2 className="personal-chat-room-title">{room?.name || 'Беседа'}</h2>
-        <ChatWindow roomId={activeRoom} />
+        <div className="personal-chat-chat-area">
+          <ChatWindow roomId={activeRoom} />
+        </div>
       </div>
     );
   }

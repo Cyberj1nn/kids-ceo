@@ -1,6 +1,7 @@
 .layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .layout-main {
@@ -8,13 +9,18 @@
   margin-left: 280px;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: #f0f4f8;
+  min-width: 0; /* предотвращает горизонтальный overflow в flex */
 }
 
 .layout-content {
   flex: 1;
   padding: 24px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0; /* критично для flex overflow */
 }
 
 @media (max-width: 768px) {

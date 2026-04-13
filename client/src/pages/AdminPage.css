@@ -347,6 +347,11 @@
     align-items: flex-start;
   }
 
+  .admin-tabs {
+    overflow-x: auto;
+    width: 100%;
+  }
+
   .admin-form-row {
     flex-direction: column;
   }

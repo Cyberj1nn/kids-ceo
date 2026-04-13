@@ -135,6 +135,11 @@
 }
 
 @media (max-width: 768px) {
+  .content-page-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
   .content-page-categories {
     overflow-x: auto;
     flex-wrap: nowrap;
@@ -143,5 +148,10 @@
 
   .category-chip {
     white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .content-page-create {
+    width: 100%;
   }
 }
