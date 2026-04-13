@@ -22,7 +22,8 @@ export default function CallTrackerPage() {
   const isAdmin = ['superadmin', 'admin', 'mentor'].includes(user?.role || '');
 
   const [entries, setEntries] = useState<CallTrackerEntry[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState(user?.id || '');
+  // Для админов начинаем без выбора (выберется первый пользователь после загрузки списка)
+  const [selectedUserId, setSelectedUserId] = useState(isAdmin ? '' : (user?.id || ''));
   const [users, setUsers] = useState<UserOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -35,12 +36,15 @@ export default function CallTrackerPage() {
   useEffect(() => {
     if (!isAdmin) return;
     api.get('/users').then(({ data }) => {
-      setUsers((data as UserOption[]).filter((u) => u.role === 'user'));
+      const filtered = (data as UserOption[]).filter((u) => u.role === 'user');
+      setUsers(filtered);
+      // Автоматически выбираем первого пользователя
+      if (filtered.length > 0) setSelectedUserId(filtered[0].id);
     }).catch(() => {});
   }, [isAdmin]);
 
   const loadEntries = useCallback(() => {
-    const uid = selectedUserId || user?.id || '';
+    const uid = isAdmin ? selectedUserId : (user?.id || '');
     if (!uid) return;
     setLoading(true);
     getCallTrackerEntries(uid)
@@ -89,19 +93,16 @@ export default function CallTrackerPage() {
     loadEntries();
   };
 
-  const viewingOther = isAdmin && selectedUserId !== user?.id;
+  const selectedUser = users.find((u) => u.id === selectedUserId);
 
   return (
     <div className="ct-page">
       <div className="ct-header">
         <h1 className="ct-title">
           Трекер созвонов
-          {viewingOther && (() => {
-            const sel = users.find((u) => u.id === selectedUserId);
-            return sel ? (
-              <span className="ct-title-user">— {sel.firstName} {sel.lastName}</span>
-            ) : null;
-          })()}
+          {isAdmin && selectedUser && (
+            <span className="ct-title-user">— {selectedUser.firstName} {selectedUser.lastName}</span>
+          )}
         </h1>
         {isAdmin && (
           <button className="ct-add-btn" onClick={() => setAdding(true)}>
@@ -112,12 +113,6 @@ export default function CallTrackerPage() {
 
       {isAdmin && (
         <div className="ct-user-tabs">
-          <button
-            className={`ct-user-tab ${selectedUserId === user?.id ? 'ct-user-tab--active' : ''}`}
-            onClick={() => setSelectedUserId(user?.id || '')}
-          >
-            Мои записи
-          </button>
           {users.map((u) => (
             <button
               key={u.id}

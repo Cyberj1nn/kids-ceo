@@ -62,7 +62,8 @@ export default function DtpPage() {
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [week, setWeek] = useState(() => getCurrentWeek(now.getFullYear(), now.getMonth() + 1));
   const [entries, setEntries] = useState<DtpEntry[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState(user?.id || '');
+  // Для админов начинаем без выбора (выберется первый пользователь после загрузки списка)
+  const [selectedUserId, setSelectedUserId] = useState(isAdmin ? '' : (user?.id || ''));
   const [users, setUsers] = useState<UserOption[]>([]);
   const [auditEntryId, setAuditEntryId] = useState<string | null>(null);
   const [auditData, setAuditData] = useState<any[]>([]);
@@ -73,13 +74,16 @@ export default function DtpPage() {
   useEffect(() => {
     if (!isAdmin) return;
     api.get('/users').then(({ data }) => {
-      setUsers((data as UserOption[]).filter((u) => u.role === 'user'));
+      const filtered = (data as UserOption[]).filter((u) => u.role === 'user');
+      setUsers(filtered);
+      // Автоматически выбираем первого пользователя
+      if (filtered.length > 0) setSelectedUserId(filtered[0].id);
     }).catch(() => {});
   }, [isAdmin]);
 
   // Загрузить записи ДТП
   const loadEntries = useCallback(() => {
-    const uid = selectedUserId || user?.id || '';
+    const uid = isAdmin ? selectedUserId : (user?.id || '');
     if (!uid) return;
     getDtpEntries(uid, year, month)
       .then(setEntries)
@@ -128,12 +132,6 @@ export default function DtpPage() {
 
       {isAdmin && (
         <div className="dtp-user-tabs">
-          <button
-            className={`dtp-user-tab ${selectedUserId === user?.id ? 'dtp-user-tab--active' : ''}`}
-            onClick={() => setSelectedUserId(user?.id || '')}
-          >
-            Мои записи
-          </button>
           {users.map((u) => (
             <button
               key={u.id}
