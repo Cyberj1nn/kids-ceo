@@ -8,14 +8,57 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy to server via SSH
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            client/package-lock.json
+            server/package-lock.json
+
+      - name: Build client
+        working-directory: client
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build server
+        working-directory: server
+        run: |
+          npm ci
+          npm run build
+
+      - name: Upload client dist to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: client/dist/*
+          target: /var/www/kids-ceo/client/dist
+          strip_components: 2
+
+      - name: Upload server dist to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: server/dist/*
+          target: /var/www/kids-ceo/server/dist
+          strip_components: 2
+
+      - name: Run migrations and restart PM2
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -25,18 +68,9 @@ jobs:
             cd /var/www/kids-ceo
             git pull origin main
 
-            # Client
-            cd client
-            npm install
-            npm run build
-            cd ..
-
-            # Server
             cd server
-            npm install
-            npm run build
-            npm run migrate
+            npm install --omit=dev
+            node dist/db/migrate.js
             cd ..
 
-            # Restart
             pm2 restart kids-ceo-api || pm2 start ecosystem.config.js
