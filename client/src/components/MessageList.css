@@ -5,6 +5,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .message-list-loader {

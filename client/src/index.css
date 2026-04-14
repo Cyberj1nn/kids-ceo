@@ -7,7 +7,9 @@
 }
 
 html {
-  overflow-x: hidden;
+  overflow: hidden;
+  height: 100%;
+  overscroll-behavior: none;
 }
 
 body {
@@ -17,7 +19,9 @@ body {
   background: #f0f4f8;
   color: #1a1a2e;
   line-height: 1.5;
-  overflow-x: hidden;
+  overflow: hidden;
+  height: 100%;
+  overscroll-behavior: none;
   /* PWA safe areas */
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }

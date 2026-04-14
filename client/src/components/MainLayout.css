@@ -21,6 +21,8 @@
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0; /* критично для flex overflow */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 @media (max-width: 768px) {
