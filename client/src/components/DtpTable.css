@@ -75,7 +75,7 @@
 
 .dtp-table-input {
   width: 100%;
-  min-height: 60px;
+  min-height: 180px;
   border: none;
   background: transparent;
   font-size: 13px;
@@ -175,7 +175,7 @@
   .dtp-card-field textarea {
     width: 100%;
     box-sizing: border-box;
-    min-height: 50px;
+    min-height: 100px;
     padding: 8px 10px;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
