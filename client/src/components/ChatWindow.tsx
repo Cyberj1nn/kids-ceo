@@ -35,7 +35,9 @@ export default function ChatWindow({ roomId }: ChatWindowProps) {
       .then((msgs) => {
         setMessages(msgs);
         setHasMore(msgs.length >= 30);
-        markAsRead(roomId).catch(() => {});
+        markAsRead(roomId)
+          .then(() => window.dispatchEvent(new CustomEvent('chat:read')))
+          .catch(() => {});
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -63,7 +65,9 @@ export default function ChatWindow({ roomId }: ChatWindowProps) {
 
       // Автопрочтение если не своё
       if (data.message.senderId !== user?.id) {
-        markAsRead(roomId).catch(() => {});
+        markAsRead(roomId)
+          .then(() => window.dispatchEvent(new CustomEvent('chat:read')))
+          .catch(() => {});
       }
     };
 

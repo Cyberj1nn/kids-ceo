@@ -14,6 +14,13 @@ export default function NotificationBell() {
     getUnreadCount().then(setCount).catch(() => {});
   }, []);
 
+  // Сбрасывать счётчик когда чат прочитан
+  useEffect(() => {
+    const handleRead = () => getUnreadCount().then(setCount).catch(() => {});
+    window.addEventListener('chat:read', handleRead);
+    return () => window.removeEventListener('chat:read', handleRead);
+  }, []);
+
   // Обновлять через WebSocket
   useEffect(() => {
     if (!socket) return;
