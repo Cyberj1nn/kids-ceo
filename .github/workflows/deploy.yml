@@ -24,8 +24,6 @@ jobs:
         working-directory: client
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
-          VITE_ROBOKASSA_INVOICE_URL: ${{ secrets.VITE_ROBOKASSA_INVOICE_URL }}
-          VITE_ROBOKASSA_TEST_INVOICE_URL: ${{ secrets.VITE_ROBOKASSA_TEST_INVOICE_URL }}
         run: |
           npm install
           npm run build

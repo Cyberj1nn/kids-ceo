@@ -1,23 +1,15 @@
 import type { ReactNode } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import './EnglishLessonsPage.css';
 
-const INVOICE_URL = import.meta.env.VITE_ROBOKASSA_INVOICE_URL as string | undefined;
-const TEST_INVOICE_URL = import.meta.env.VITE_ROBOKASSA_TEST_INVOICE_URL as string | undefined;
+// Публичные ссылки Robokassa Invoice — не секреты, безопасно хранить в коде.
+// В виджете Robokassa прописаны SuccessURL2/FailURL2 → /api/payments/robokassa/*.
+const INVOICE_URL = 'https://auth.robokassa.ru/merchant/Invoice/mT1I4fhMA0y8oBdIuToPdQ';
+const TEST_INVOICE_URL = 'https://auth.robokassa.ru/merchant/Invoice/8qSHLreLXkql8qY7t0Mz4Q';
 
 function PayButton({ className, children }: { className: string; children: ReactNode }) {
   return (
-    <a
-      className={className}
-      href={INVOICE_URL || '#'}
-      target="_blank"
-      rel="noopener"
-      onClick={(e) => {
-        if (!INVOICE_URL) {
-          e.preventDefault();
-          alert('Оплата временно недоступна. Пожалуйста, попробуйте позже.');
-        }
-      }}
-    >
+    <a className={className} href={INVOICE_URL} target="_blank" rel="noopener">
       {children}
     </a>
   );
@@ -51,6 +43,10 @@ function CheckIcon() {
 }
 
 export default function EnglishLessonsPage() {
+  // тест-кнопка в футере появляется только при ?test=1 — для внутренних проверок
+  const [searchParams] = useSearchParams();
+  const showTestButton = searchParams.get('test') === '1';
+
   return (
     <div className="evp">
 
@@ -437,7 +433,7 @@ export default function EnglishLessonsPage() {
             <a href="https://evarestova.ru/oferta_cons" target="_blank" rel="noopener">Договор-оферта</a>
             <a href="https://docs.google.com/document/d/1g4ecQrwyA4HY5V9V-gtHd1HIQkP6sNxhHVI8aUMQqS8/edit?usp=sharing" target="_blank" rel="noopener">Согласие на обработку персональных данных</a>
           </div>
-          {TEST_INVOICE_URL && (
+          {showTestButton && (
             <div className="evp-footer__test">
               <a href={TEST_INVOICE_URL} target="_blank" rel="noopener">
                 🧪 Тестовая оплата
