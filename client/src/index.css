@@ -7,7 +7,11 @@
 }
 
 html {
-  overflow-x: hidden;
+  /* `clip` вместо `hidden` — обрезает горизонтальный overflow, но не делает html
+     scroll-контейнером. С `hidden` html и body оба становились scroll-контейнерами
+     одинаковой высоты, wheel-события попадали в «вилку» и терялись на длинных
+     страницах без MainLayout (например, /english_lessons). */
+  overflow-x: clip;
   overscroll-behavior: none;
 }
 
@@ -18,7 +22,7 @@ body {
   background: #f0f4f8;
   color: #1a1a2e;
   line-height: 1.5;
-  overflow-x: hidden;
+  overflow-x: clip;
   overscroll-behavior: none;
   /* PWA safe areas */
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
