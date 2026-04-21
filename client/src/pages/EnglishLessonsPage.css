@@ -437,7 +437,9 @@
   font-size: 24px; color: var(--blue-100);
   transform: rotate(6deg);
 }
-.evp-cta__note {
+/* .evp .evp-cta__note вместо .evp-cta__note — иначе проигрывает в специфичности
+   глобальному `.evp p { margin: 0 0 12px }` и margin-top обнуляется */
+.evp .evp-cta__note {
   font-size: 13px;
   color: rgba(252,249,241,.6);
   margin: 24px auto 0;
