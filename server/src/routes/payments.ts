@@ -158,11 +158,42 @@ router.all('/robokassa/result', async (req: Request, res: Response) => {
   }
 
   if (!sigMatched) {
-    console.warn('[payments/result] невалидная подпись', {
-      invIdStr, outSum, tried: Array.from(candidates),
-    });
-    res.status(400).type('text/plain').send('bad sig');
-    return;
+    // Отладка: Robokassa включает shp_-параметры в подпись в формате
+    // OutSum:InvId:Password#2:shp_key1=value1:shp_key2=value2 (в алфавитном порядке).
+    const shpEntries = Object.entries(params)
+      .filter(([k]) => k.toLowerCase().startsWith('shp_'))
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([k, v]) => `${k}=${v}`)
+      .join(':');
+
+    const withShp = new Set<string>();
+    if (shpEntries) {
+      for (const c of candidates) {
+        withShp.add(`${c}:${invIdStr}:${pass2}:${shpEntries}`);
+      }
+    }
+
+    // Последняя попытка — с shp-параметрами
+    for (const base of withShp) {
+      const h = createHash('md5').update(base).digest('hex');
+      if (h.toLowerCase() === signatureLower) {
+        sigMatched = true;
+        break;
+      }
+    }
+
+    if (!sigMatched) {
+      console.warn('[payments/result] bad sig', {
+        invIdStr,
+        outSum,
+        received: signatureLower,
+        params,
+        triedOutSums: Array.from(candidates),
+        shpEntries,
+      });
+      res.status(400).type('text/plain').send('bad sig');
+      return;
+    }
   }
 
   const parsedInvId = Number(invIdStr);
