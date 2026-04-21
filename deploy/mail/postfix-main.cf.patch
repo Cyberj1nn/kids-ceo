@@ -1,0 +1,30 @@
+# Ключевые директивы Postfix, которые устанавливает deploy/mail/install.sh.
+# Применяются через `postconf -e "key = value"`.
+# Остальные настройки — дефолтные от пакета postfix.
+
+myhostname = mail.kids-ceo.ru
+mydomain = kids-ceo.ru
+myorigin = $mydomain
+mydestination = $myhostname, localhost.$mydomain, localhost
+
+# Слушаем только loopback — снаружи Postfix недоступен.
+# Это защищает от использования сервера как open relay.
+inet_interfaces = loopback-only
+inet_protocols = ipv4
+mynetworks = 127.0.0.0/8 [::1]/128
+
+# Запрет релея для кого-либо кроме mynetworks.
+smtpd_relay_restrictions = permit_mynetworks, permit_sasl_authenticated, defer_unauth_destination
+
+# TLS при отправке наружу (opportunistic).
+smtp_tls_security_level = may
+smtp_tls_loglevel = 1
+smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
+
+# Milter — OpenDKIM подписывает исходящую почту.
+milter_default_action = accept
+milter_protocol = 6
+smtpd_milters = inet:127.0.0.1:8891
+non_smtpd_milters = inet:127.0.0.1:8891
+
+message_size_limit = 10485760

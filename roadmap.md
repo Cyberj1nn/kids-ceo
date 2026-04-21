@@ -234,3 +234,38 @@
 - [x] Пустые состояния: информативные заглушки ("Нет материалов", "Нет сообщений")
 - [x] Favicon (SVG) и мета-теги (title, description, theme-color, apple meta)
 - [x] 404 страница
+
+---
+
+## Фаза 8. Лендинг English Lessons + приём оплат Robokassa
+
+### 8.1. Публичный лендинг `/english_lessons`
+- [x] Страница `EnglishLessonsPage` на базе Tilda-HTML (перенос в JSX + вынос CSS)
+- [x] Публичный роут (без `PrivateRoute` и `MainLayout`) — `/english_lessons`
+- [x] Все 3 кнопки оплаты берут href из `VITE_ROBOKASSA_INVOICE_URL`
+- [x] Страницы состояний: `/english_lessons/success`, `/english_lessons/fail`
+
+### 8.2. Backend — обработка платежей
+- [x] Миграция `011_payments.sql` — таблица `payments` (inv_id UNIQUE, email, status, raw_params JSONB, email_sent_at)
+- [x] Сервис `services/mailer.ts` — nodemailer, шаблон письма + уведомление админу
+- [x] Queries `db/queries/payments.ts` — `insertPayment` (ON CONFLICT DO NOTHING) + `markEmailSent`
+- [x] Роут `routes/payments.ts` — `GET/POST /api/payments/robokassa/success` и `/fail`, идемпотентность по InvId, редирект на React-страницы
+- [x] Конфиг расширен блоками `smtp`, `englishLessons`, `adminNotifyEmail`
+- [x] `.env.example` для server и client
+
+### 8.3. Почтовый сервер (Postfix + OpenDKIM) на Beget
+- [ ] Конфиги Postfix/OpenDKIM в `deploy/mail/` + скрипт установки
+- [ ] Установить Postfix + OpenDKIM + certbot на Ubuntu-сервере
+- [ ] Сгенерировать DKIM-ключ, настроить подписание исходящей почты
+- [ ] TLS-сертификат Let's Encrypt для `mail.kids-ceo.ru`
+- [ ] Открыть тикет в Beget: PTR-запись `46.173.24.16 → mail.kids-ceo.ru`
+- [ ] Прописать DNS в reg.ru: A (mail), SPF, DKIM, DMARC, MX
+- [ ] Тест отправки через mail-tester.com, целевой score ≥ 9/10
+
+### 8.4. Настройки Robokassa и проды (делает владелец)
+- [ ] В кабинете Robokassa включить обязательное поле **Email покупателя**
+- [ ] В кабинете Robokassa указать SuccessURL/FailURL (или убедиться, что передаются через параметры Invoice-ссылки)
+- [ ] Прописать `.env` на проде (SMTP_*, ADMIN_NOTIFY_EMAIL)
+- [ ] Применить миграцию `011_payments.sql` на проде: `npm run migrate`
+- [ ] Протестировать цепочку в тестовом режиме Robokassa (тестовая карта → email с Drive-ссылкой)
+- [ ] Переключить Robokassa в боевой режим, прогнать реальный платёж

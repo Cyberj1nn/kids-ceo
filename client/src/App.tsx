@@ -12,6 +12,9 @@ import PersonalChatPage from './pages/PersonalChatPage';
 import DtpPage from './pages/DtpPage';
 import CallTrackerPage from './pages/CallTrackerPage';
 import AdminPage from './pages/AdminPage';
+import EnglishLessonsPage from './pages/EnglishLessonsPage';
+import EnglishLessonsSuccessPage from './pages/EnglishLessonsSuccessPage';
+import EnglishLessonsFailPage from './pages/EnglishLessonsFailPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 // Вкладки с подкатегориями → ContentPage
@@ -27,6 +30,10 @@ export default function App() {
           <SocketProvider>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
+
+              <Route path="/english_lessons" element={<EnglishLessonsPage />} />
+              <Route path="/english_lessons/success" element={<EnglishLessonsSuccessPage />} />
+              <Route path="/english_lessons/fail" element={<EnglishLessonsFailPage />} />
 
               <Route
                 path="/"

@@ -14,6 +14,7 @@ import chatRouter from './routes/chat';
 import dtpRouter from './routes/dtp';
 import usersRouter from './routes/users';
 import callTrackerRouter from './routes/callTracker';
+import paymentsRouter from './routes/payments';
 import { initSocket } from './socket';
 
 const app = express();
@@ -93,6 +94,7 @@ app.use('/api/notifications', chatRouter);
 app.use('/api/dtp', dtpRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/call-tracker', callTrackerRouter);
+app.use('/api/payments', paymentsRouter);
 
 // --- Обработка ошибок ---
 

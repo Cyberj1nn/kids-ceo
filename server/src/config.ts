@@ -23,4 +23,21 @@ export const config = {
   },
 
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+
+  smtp: {
+    host: process.env.SMTP_HOST || 'localhost',
+    port: parseInt(process.env.SMTP_PORT || '25', 10),
+    secure: (process.env.SMTP_SECURE ?? 'false') === 'true',
+    user: process.env.SMTP_USER || '',
+    password: process.env.SMTP_PASSWORD || '',
+    from: process.env.SMTP_FROM || 'Kids CEO <noreply@kids-ceo.ru>',
+  },
+
+  englishLessons: {
+    materialsUrl:
+      process.env.ENGLISH_LESSONS_MATERIALS_URL ||
+      'https://drive.google.com/drive/folders/1_guTloxL7jrMS-Oxl_ftQg4we-ShEAQS?usp=sharing',
+  },
+
+  adminNotifyEmail: process.env.ADMIN_NOTIFY_EMAIL || '',
 };
