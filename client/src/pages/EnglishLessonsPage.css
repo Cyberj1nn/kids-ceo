@@ -125,6 +125,13 @@
 .evp-hero__headline em { font-style: normal; color: var(--blue-100); }
 .evp-hero__sub { font-size: 17px; line-height: 1.5; max-width: 520px; margin: 0 0 28px; color: rgba(252,249,241,.94); }
 .evp-hero__cta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.evp-hero__hint {
+  margin: 14px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(252,249,241,.8);
+  max-width: 520px;
+}
 .evp-hero__sticker {
   position: absolute; right: 28px; bottom: 26px;
   font-family: var(--font-serif); font-style: italic; font-weight: 700;

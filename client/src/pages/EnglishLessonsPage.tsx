@@ -72,6 +72,9 @@ export default function EnglishLessonsPage() {
               </PayButton>
               <a className="evp-btn evp-btn--ghost-cream evp-btn--lg" href="#sample">Посмотреть пример урока</a>
             </div>
+            <p className="evp-hero__hint">
+              После оплаты ссылка на&nbsp;все материалы программы придёт на&nbsp;email, указанный в&nbsp;платёжной форме. Если не&nbsp;видите письмо в&nbsp;течение 5&nbsp;минут — проверьте папку «Спам».
+            </p>
             <span className="evp-hero__sticker">для&nbsp;детей, окончивших&nbsp;1&nbsp;класс</span>
           </div>
 
@@ -289,7 +292,9 @@ export default function EnglishLessonsPage() {
             Купить всего за&nbsp;3 000 ₽ · 24&nbsp;урока
             <ArrowRight size={20} />
           </PayButton>
-          <p className="evp-cta-mid__sub">Один платёж&nbsp;— и&nbsp;вся&nbsp;программа у&nbsp;вас на&nbsp;почте</p>
+          <p className="evp-cta-mid__sub">
+            Один платёж&nbsp;— и&nbsp;вся&nbsp;программа у&nbsp;вас на&nbsp;почте. Ссылка придёт на&nbsp;email, указанный при оплате; проверьте папку «Спам», если не&nbsp;видите письмо в&nbsp;течение 5&nbsp;минут.
+          </p>
         </div>
       </section>
 
@@ -409,6 +414,9 @@ export default function EnglishLessonsPage() {
               Купить программу · 3 000 ₽
               <ArrowRight size={20} />
             </PayButton>
+            <p className="evp-cta__note">
+              После оплаты ссылка на&nbsp;материалы придёт на&nbsp;email из&nbsp;платёжной формы. Проверьте папку «Спам», если письмо не&nbsp;приходит в&nbsp;течение 5&nbsp;минут.
+            </p>
           </div>
         </div>
       </section>
