@@ -133,9 +133,34 @@ router.all('/robokassa/result', async (req: Request, res: Response) => {
     return;
   }
 
-  const expected = createHash('md5').update(`${outSum}:${invIdStr}:${pass2}`).digest('hex');
-  if (expected.toLowerCase() !== String(signature).toLowerCase()) {
-    console.warn('[payments/result] невалидная подпись', { invIdStr, outSum });
+  // Robokassa в ResultURL передаёт OutSum в разном формате (наблюдали "10.00"
+  // в SuccessURL и "10.000000" в ResultURL). Подпись считается от OutSum в том
+  // виде, в каком он был при создании платежа. Поэтому пробуем несколько
+  // стандартных форматов — если хоть один совпал, подпись валидна.
+  const signatureLower = String(signature).toLowerCase();
+  const outSumNum = parseFloat(outSum);
+  const candidates = new Set<string>([outSum]);
+  if (Number.isFinite(outSumNum)) {
+    candidates.add(outSumNum.toString());   // "10"
+    candidates.add(outSumNum.toFixed(2));   // "10.00"
+    candidates.add(outSumNum.toFixed(6));   // "10.000000"
+    // Также 0-trailing trim по точке: "10.000000" -> "10" или "10.5"
+    candidates.add(outSum.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, ''));
+  }
+
+  let sigMatched = false;
+  for (const c of candidates) {
+    const expected = createHash('md5').update(`${c}:${invIdStr}:${pass2}`).digest('hex');
+    if (expected.toLowerCase() === signatureLower) {
+      sigMatched = true;
+      break;
+    }
+  }
+
+  if (!sigMatched) {
+    console.warn('[payments/result] невалидная подпись', {
+      invIdStr, outSum, tried: Array.from(candidates),
+    });
     res.status(400).type('text/plain').send('bad sig');
     return;
   }
