@@ -5,6 +5,7 @@ let transporter: Transporter | null = null;
 
 function getTransporter(): Transporter {
   if (!transporter) {
+    const isLocalhost = config.smtp.host === 'localhost' || config.smtp.host === '127.0.0.1';
     transporter = nodemailer.createTransport({
       host: config.smtp.host,
       port: config.smtp.port,
@@ -12,6 +13,11 @@ function getTransporter(): Transporter {
       auth: config.smtp.user
         ? { user: config.smtp.user, pass: config.smtp.password }
         : undefined,
+      // Локальный Postfix (loopback-only) не имеет TLS-сертификата и advertises
+      // STARTTLS «опционально»: без ignoreTLS nodemailer пытается STARTTLS и
+      // соединение падает с "SSL_accept error ... lost connection".
+      ignoreTLS: isLocalhost,
+      tls: isLocalhost ? { rejectUnauthorized: false } : undefined,
     });
   }
   return transporter;
