@@ -126,26 +126,29 @@
 .evp-hero__sub { font-size: 17px; line-height: 1.5; max-width: 520px; margin: 0 0 28px; color: rgba(252,249,241,.94); }
 .evp-hero__cta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .evp-hero__hint {
-  margin: 14px 0 0;
+  margin: 0;
   font-size: 13px;
   line-height: 1.5;
   color: rgba(252,249,241,.8);
-  /* ограничиваем ширину, чтобы не наезжал на стикер в правом нижнем углу */
   max-width: 400px;
-  position: relative;
-  z-index: 1;
+  flex: 1 1 260px;
 }
-
-@media (max-width: 900px) {
-  /* на мобильном стикер уходит в поток ниже — hint может быть на всю ширину */
-  .evp-hero__hint { max-width: none; }
+/* sticker + hint живут во flex-row .evp-hero__bottom, чтобы не пересекаться */
+.evp-hero__bottom {
+  margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
 }
 .evp-hero__sticker {
-  position: absolute; right: 28px; bottom: 26px;
   font-family: var(--font-serif); font-style: italic; font-weight: 700;
   font-size: 26px; line-height: 1.15; color: var(--cream-100) !important;
   transform: rotate(-6deg); max-width: 260px; text-align: right;
   opacity: .92; pointer-events: none;
+  align-self: flex-end;
+  flex-shrink: 0;
 }
 .evp-hero__side {
   background: var(--cream-100);
@@ -484,7 +487,9 @@
   .evp-hero { padding: 36px 0 40px; }
   .evp-hero__grid { grid-template-columns: 1fr; gap: 18px; }
   .evp-hero__tile { padding: 28px 24px 32px; }
-  .evp-hero__sticker { position: static; text-align: left; transform: rotate(-3deg); margin-top: 18px; max-width: none; }
+  .evp-hero__sticker { text-align: left; transform: rotate(-3deg); max-width: none; align-self: flex-start; }
+  .evp-hero__bottom { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .evp-hero__hint { max-width: none; flex: 0 0 auto; }
   .evp-hero__side { padding: 24px; }
   .evp-get { padding: 56px 0; }
   .evp-get__grid { grid-template-columns: 1fr; }

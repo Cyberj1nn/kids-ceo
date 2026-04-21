@@ -72,10 +72,12 @@ export default function EnglishLessonsPage() {
               </PayButton>
               <a className="evp-btn evp-btn--ghost-cream evp-btn--lg" href="#sample">Посмотреть пример урока</a>
             </div>
-            <p className="evp-hero__hint">
-              После оплаты ссылка на&nbsp;все материалы программы придёт на&nbsp;email, указанный в&nbsp;платёжной форме. Если не&nbsp;видите письмо в&nbsp;течение 5&nbsp;минут — проверьте папку «Спам».
-            </p>
-            <span className="evp-hero__sticker">для&nbsp;детей, окончивших&nbsp;1&nbsp;класс</span>
+            <div className="evp-hero__bottom">
+              <p className="evp-hero__hint">
+                После оплаты ссылка на&nbsp;все материалы программы придёт на&nbsp;email, указанный в&nbsp;платёжной форме. Если не&nbsp;видите письмо в&nbsp;течение 5&nbsp;минут — проверьте папку «Спам».
+              </p>
+              <span className="evp-hero__sticker">для&nbsp;детей, окончивших&nbsp;1&nbsp;класс</span>
+            </div>
           </div>
 
           <aside className="evp-hero__side">
