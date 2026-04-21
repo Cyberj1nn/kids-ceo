@@ -437,7 +437,13 @@
   font-size: 24px; color: var(--blue-100);
   transform: rotate(6deg);
 }
-.evp-cta__note { font-size: 13px; color: rgba(252,249,241,.6); margin-top: 16px; }
+.evp-cta__note {
+  font-size: 13px;
+  color: rgba(252,249,241,.6);
+  margin: 24px auto 0;
+  max-width: 580px;
+  line-height: 1.5;
+}
 
 /* FOOTER */
 .evp-footer {
@@ -572,6 +578,31 @@
 .evp .evp-footer__legal a:hover {
   color: var(--cream-100) !important;
   text-decoration-color: var(--cream-100) !important;
+}
+
+/* тестовая кнопка оплаты в футере — рендерится только если задан VITE_ROBOKASSA_TEST_INVOICE_URL */
+.evp-footer__test {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+  text-align: right;
+}
+.evp .evp-footer__test a {
+  display: inline-block;
+  font-size: 12px;
+  font-style: italic;
+  color: rgba(252,249,241,.55) !important;
+  text-decoration: underline !important;
+  text-decoration-color: rgba(252,249,241,.25) !important;
+  text-underline-offset: 3px;
+  transition: color 160ms, text-decoration-color 160ms;
+}
+.evp .evp-footer__test a:hover {
+  color: rgba(252,249,241,.85) !important;
+  text-decoration-color: rgba(252,249,241,.6) !important;
+}
+
+@media (max-width: 900px) {
+  .evp-footer__test { text-align: left; }
 }
 
 /* =====================================================

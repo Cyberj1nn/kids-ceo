@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import './EnglishLessonsPage.css';
 
 const INVOICE_URL = import.meta.env.VITE_ROBOKASSA_INVOICE_URL as string | undefined;
+const TEST_INVOICE_URL = import.meta.env.VITE_ROBOKASSA_TEST_INVOICE_URL as string | undefined;
 
 function PayButton({ className, children }: { className: string; children: ReactNode }) {
   return (
@@ -436,6 +437,13 @@ export default function EnglishLessonsPage() {
             <a href="https://evarestova.ru/oferta_cons" target="_blank" rel="noopener">Договор-оферта</a>
             <a href="https://docs.google.com/document/d/1g4ecQrwyA4HY5V9V-gtHd1HIQkP6sNxhHVI8aUMQqS8/edit?usp=sharing" target="_blank" rel="noopener">Согласие на обработку персональных данных</a>
           </div>
+          {TEST_INVOICE_URL && (
+            <div className="evp-footer__test">
+              <a href={TEST_INVOICE_URL} target="_blank" rel="noopener">
+                🧪 Тестовая оплата
+              </a>
+            </div>
+          )}
         </div>
       </footer>
 
