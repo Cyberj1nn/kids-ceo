@@ -54,8 +54,11 @@ function PayModal({ invoiceUrl, onClose }: {
     const trimmed = email.trim();
     if (!trimmed) return;
     try { localStorage.setItem(EMAIL_STORAGE_KEY, trimmed); } catch { /* quota */ }
-    // shp_email — custom параметр Robokassa, возвращается обратно в SuccessURL2
-    const url = `${invoiceUrl}?shp_email=${encodeURIComponent(trimmed)}`;
+    // Email — стандартный параметр Robokassa: предзаполняет поле email в форме оплаты
+    //         и используется для отправки фискального чека (если подключена онлайн-касса).
+    // shp_email — custom-параметр, гарантированно возвращается в SuccessURL2/ResultURL.
+    const encoded = encodeURIComponent(trimmed);
+    const url = `${invoiceUrl}?Email=${encoded}&shp_email=${encoded}`;
     window.open(url, '_blank', 'noopener');
     onClose();
   }
