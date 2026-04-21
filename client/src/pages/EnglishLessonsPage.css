@@ -130,7 +130,15 @@
   font-size: 13px;
   line-height: 1.5;
   color: rgba(252,249,241,.8);
-  max-width: 520px;
+  /* ограничиваем ширину, чтобы не наезжал на стикер в правом нижнем углу */
+  max-width: 400px;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 900px) {
+  /* на мобильном стикер уходит в поток ниже — hint может быть на всю ширину */
+  .evp-hero__hint { max-width: none; }
 }
 .evp-hero__sticker {
   position: absolute; right: 28px; bottom: 26px;
