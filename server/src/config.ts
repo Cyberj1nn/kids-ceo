@@ -24,6 +24,13 @@ export const config = {
 
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
 
+  // Нужно для fallback-запроса email через Robokassa REST API (OpStateExt),
+  // когда Robokassa не передаёт Email в SuccessURL2.
+  robokassa: {
+    merchantLogin: process.env.ROBOKASSA_MERCHANT_LOGIN || '',
+    password2: process.env.ROBOKASSA_PASSWORD_2 || '',
+  },
+
   smtp: {
     host: process.env.SMTP_HOST || 'localhost',
     port: parseInt(process.env.SMTP_PORT || '25', 10),

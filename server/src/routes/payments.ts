@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { config } from '../config';
 import { sendEnglishLessonsLink, sendAdminNotification } from '../services/mailer';
+import { fetchPaymentEmail } from '../services/robokassa';
 import { insertPayment, markEmailSent } from '../db/queries/payments';
 
 const router = Router();
@@ -34,7 +35,7 @@ router.all('/robokassa/success', async (req: Request, res: Response) => {
   const params = collectParams(req);
   const outSum = pickParam(params, 'OutSum', 'outSum');
   const invIdStr = pickParam(params, 'InvId', 'invId');
-  const email = pickParam(params, 'Email', 'email', 'EMail') || null;
+  let email = pickParam(params, 'Email', 'email', 'EMail') || null;
 
   const successUrl = `${config.clientUrl}/english_lessons/success`;
   const failUrl = `${config.clientUrl}/english_lessons/fail`;
@@ -45,6 +46,18 @@ router.all('/robokassa/success', async (req: Request, res: Response) => {
   const invId = Number.isFinite(parsedInvId) && parsedInvId > 0
     ? parsedInvId
     : Date.now();
+
+  // Fallback: если email не пришёл в SuccessURL2 — тянем через API Robokassa.
+  if (!email && Number.isFinite(parsedInvId) && parsedInvId > 0) {
+    try {
+      email = await fetchPaymentEmail(parsedInvId);
+      if (email) {
+        console.log('[payments/success] email получен через Robokassa API', { invId, email });
+      }
+    } catch (err) {
+      console.error('[payments/success] fetchPaymentEmail error:', err);
+    }
+  }
 
   let payment;
   try {
