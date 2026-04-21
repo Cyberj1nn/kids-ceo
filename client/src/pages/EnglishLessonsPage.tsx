@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import './EnglishLessonsPage.css';
 
@@ -6,12 +7,86 @@ import './EnglishLessonsPage.css';
 // В виджете Robokassa прописаны SuccessURL2/FailURL2 → /api/payments/robokassa/*.
 const INVOICE_URL = 'https://auth.robokassa.ru/merchant/Invoice/mT1I4fhMA0y8oBdIuToPdQ';
 const TEST_INVOICE_URL = 'https://auth.robokassa.ru/merchant/Invoice/8qSHLreLXkql8qY7t0Mz4Q';
+const EMAIL_STORAGE_KEY = 'evp_pay_email';
 
-function PayButton({ className, children }: { className: string; children: ReactNode }) {
+function PayButton({ className, children, onClick }: {
+  className: string;
+  children: ReactNode;
+  onClick: () => void;
+}) {
   return (
-    <a className={className} href={INVOICE_URL} target="_blank" rel="noopener">
+    <a
+      className={className}
+      href={INVOICE_URL}
+      role="button"
+      onClick={(e) => {
+        e.preventDefault();
+        onClick();
+      }}
+    >
       {children}
     </a>
+  );
+}
+
+function PayModal({ invoiceUrl, onClose }: {
+  invoiceUrl: string;
+  onClose: () => void;
+}) {
+  const [email, setEmail] = useState(() => {
+    try { return localStorage.getItem(EMAIL_STORAGE_KEY) || ''; } catch { return ''; }
+  });
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = email.trim();
+    if (!trimmed) return;
+    try { localStorage.setItem(EMAIL_STORAGE_KEY, trimmed); } catch { /* quota */ }
+    // shp_email — custom параметр Robokassa, возвращается обратно в SuccessURL2
+    const url = `${invoiceUrl}?shp_email=${encodeURIComponent(trimmed)}`;
+    window.open(url, '_blank', 'noopener');
+    onClose();
+  }
+
+  return (
+    <div className="evp-modal__backdrop" onClick={onClose}>
+      <form className="evp-modal" onClick={(e) => e.stopPropagation()} onSubmit={submit}>
+        <button type="button" className="evp-modal__close" onClick={onClose} aria-label="Закрыть">×</button>
+        <h3 className="evp-modal__title">Введите email</h3>
+        <p className="evp-modal__text">
+          На этот адрес мы отправим ссылку на&nbsp;все материалы программы сразу после оплаты.
+        </p>
+        <input
+          ref={inputRef}
+          type="email"
+          required
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="evp-modal__input"
+          autoComplete="email"
+        />
+        <button
+          type="submit"
+          className="evp-btn evp-btn--blue evp-btn--lg evp-modal__submit"
+          disabled={!email.trim()}
+        >
+          Перейти к&nbsp;оплате →
+        </button>
+      </form>
+    </div>
   );
 }
 
@@ -47,7 +122,13 @@ export default function EnglishLessonsPage() {
   const [searchParams] = useSearchParams();
   const showTestButton = searchParams.get('test') === '1';
 
+  // модалка с формой email перед переходом в Robokassa
+  const [payUrl, setPayUrl] = useState<string | null>(null);
+  const openPay = (url: string) => setPayUrl(url);
+  const closePay = () => setPayUrl(null);
+
   return (
+    <>
     <div className="evp">
 
       {/* HERO */}
@@ -63,7 +144,7 @@ export default function EnglishLessonsPage() {
               Запускайте группы уже в&nbsp;ближайшие недели и&nbsp;зарабатывайте этим летом&nbsp;— без&nbsp;хаоса и&nbsp;«самодеятельности» преподавателей.
             </p>
             <div className="evp-hero__cta">
-              <PayButton className="evp-btn evp-btn--cream evp-btn--lg">
+              <PayButton className="evp-btn evp-btn--cream evp-btn--lg" onClick={() => openPay(INVOICE_URL)}>
                 Купить программу · 3 000 ₽
                 <ArrowRight />
               </PayButton>
@@ -287,7 +368,7 @@ export default function EnglishLessonsPage() {
       {/* MID CTA */}
       <section className="evp-cta-mid">
         <div className="evp__wrap">
-          <PayButton className="evp-btn evp-btn--blue evp-btn--xl evp-cta-mid__btn">
+          <PayButton className="evp-btn evp-btn--blue evp-btn--xl evp-cta-mid__btn" onClick={() => openPay(INVOICE_URL)}>
             Купить всего за&nbsp;3 000 ₽ · 24&nbsp;урока
             <ArrowRight size={20} />
           </PayButton>
@@ -409,7 +490,7 @@ export default function EnglishLessonsPage() {
             <span className="evp-eyebrow" style={{ color: 'var(--blue-100)' }}>старт за&nbsp;несколько дней</span>
             <h2 className="evp-h2">Запустите летнюю программу<br />английского уже&nbsp;сейчас</h2>
             <p className="evp-cta__sub">…и&nbsp;начните получать доход в&nbsp;этом сезоне. Один платёж&nbsp;— и&nbsp;все&nbsp;24&nbsp;урока у&nbsp;вас на&nbsp;почте.</p>
-            <PayButton className="evp-btn evp-btn--cream evp-btn--xl">
+            <PayButton className="evp-btn evp-btn--cream evp-btn--xl" onClick={() => openPay(INVOICE_URL)}>
               Купить программу · 3 000 ₽
               <ArrowRight size={20} />
             </PayButton>
@@ -435,7 +516,11 @@ export default function EnglishLessonsPage() {
           </div>
           {showTestButton && (
             <div className="evp-footer__test">
-              <a href={TEST_INVOICE_URL} target="_blank" rel="noopener">
+              <a
+                href={TEST_INVOICE_URL}
+                role="button"
+                onClick={(e) => { e.preventDefault(); openPay(TEST_INVOICE_URL); }}
+              >
                 🧪 Тестовая оплата
               </a>
             </div>
@@ -444,5 +529,7 @@ export default function EnglishLessonsPage() {
       </footer>
 
     </div>
+    {payUrl && <PayModal invoiceUrl={payUrl} onClose={closePay} />}
+    </>
   );
 }

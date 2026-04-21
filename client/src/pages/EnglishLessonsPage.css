@@ -582,6 +582,107 @@
   text-decoration-color: var(--cream-100) !important;
 }
 
+/* =====================================================
+   MODAL — форма email перед переходом в Robokassa
+   ===================================================== */
+.evp-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(21, 47, 71, .55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+  animation: evp-modal-fade 160ms ease-out;
+}
+@keyframes evp-modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.evp .evp-modal {
+  background: var(--cream-50);
+  border-radius: 24px;
+  box-shadow: var(--shadow-lift);
+  padding: 36px 36px 32px;
+  max-width: 440px;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: var(--font-sans);
+  color: var(--ink-900);
+}
+.evp .evp-modal__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--ink-500);
+  transition: background 120ms, color 120ms;
+  padding: 0;
+}
+.evp .evp-modal__close:hover {
+  background: var(--cream-200);
+  color: var(--ink-900);
+}
+.evp .evp-modal__title {
+  font-weight: 800;
+  font-size: 22px;
+  line-height: 1.15;
+  color: var(--blue-700);
+  margin: 0 0 2px;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+.evp .evp-modal__text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-700);
+  margin: 0 0 6px;
+}
+.evp .evp-modal__input {
+  font-family: inherit;
+  font-size: 16px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--cream-300);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink-900);
+  outline: none;
+  transition: border-color 160ms;
+  width: 100%;
+}
+.evp .evp-modal__input:focus {
+  border-color: var(--blue-500);
+}
+.evp .evp-modal__submit {
+  margin-top: 6px;
+  justify-content: center;
+  width: 100%;
+  text-align: center;
+}
+.evp .evp-modal__submit:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  .evp .evp-modal { padding: 28px 22px 24px; border-radius: 18px; }
+  .evp .evp-modal__title { font-size: 19px; }
+}
+
 /* тестовая кнопка оплаты в футере — рендерится только если задан VITE_ROBOKASSA_TEST_INVOICE_URL */
 .evp-footer__test {
   grid-column: 1 / -1;

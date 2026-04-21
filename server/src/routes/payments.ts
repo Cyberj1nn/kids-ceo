@@ -35,7 +35,13 @@ router.all('/robokassa/success', async (req: Request, res: Response) => {
   const params = collectParams(req);
   const outSum = pickParam(params, 'OutSum', 'outSum');
   const invIdStr = pickParam(params, 'InvId', 'invId');
-  let email = pickParam(params, 'Email', 'email', 'EMail') || null;
+  // Email может прилететь: стандартным (Email) или через shp_email (мы сами
+  // пробрасываем в URL Invoice из модалки email-формы на лендинге).
+  let email = pickParam(
+    params,
+    'Email', 'email', 'EMail',
+    'shp_email', 'shp_Email', 'Shp_email', 'Shp_Email'
+  ) || null;
 
   const successUrl = `${config.clientUrl}/english_lessons/success`;
   const failUrl = `${config.clientUrl}/english_lessons/fail`;
