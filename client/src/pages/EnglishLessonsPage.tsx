@@ -61,7 +61,7 @@ function PayModal({ invoiceUrl, onClose }: {
   }
 
   return (
-    <div className="evp-modal__backdrop" onClick={onClose}>
+    <div className="evp evp-modal__backdrop" onClick={onClose}>
       <form className="evp-modal" onClick={(e) => e.stopPropagation()} onSubmit={submit}>
         <button type="button" className="evp-modal__close" onClick={onClose} aria-label="Закрыть">×</button>
         <h3 className="evp-modal__title">Введите email</h3>
