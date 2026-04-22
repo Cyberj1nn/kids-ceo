@@ -64,7 +64,7 @@ export default function FileUploader({ contentItemId, attachments, onAttachments
           ref={inputRef}
           type="file"
           multiple
-          accept="image/*,.pdf,audio/*"
+          accept="image/*,.pdf,audio/*,.epub,.fb2,.mobi,.azw,.azw3,.rtf,.doc,.docx,.txt"
           onChange={(e) => e.target.files && handleFiles(e.target.files)}
           hidden
         />
@@ -73,7 +73,7 @@ export default function FileUploader({ contentItemId, attachments, onAttachments
         ) : (
           <span>Перетащите файлы сюда или нажмите для выбора</span>
         )}
-        <span className="file-uploader-hint">Изображения до 10 МБ, PDF до 50 МБ, аудио до 100 МБ</span>
+        <span className="file-uploader-hint">Изображения до 10 МБ, PDF до 50 МБ, аудио до 100 МБ, электронные книги (EPUB, FB2, MOBI, RTF, DOC, DOCX, TXT) до 50 МБ</span>
       </div>
 
       {attachments.length > 0 && (
@@ -84,7 +84,13 @@ export default function FileUploader({ contentItemId, attachments, onAttachments
                 <img src={`${API_BASE}${att.fileUrl}`} alt={att.originalName} className="file-uploader-thumb" />
               ) : (
                 <span className="file-uploader-icon">
-                  {att.fileType === 'pdf' ? '📄' : '🎧'}
+                  {att.fileType === 'pdf'
+                    ? '📄'
+                    : att.fileType === 'audio'
+                    ? '🎧'
+                    : att.fileType === 'ebook'
+                    ? '📚'
+                    : '📎'}
                 </span>
               )}
               <span className="file-uploader-name">{att.originalName}</span>

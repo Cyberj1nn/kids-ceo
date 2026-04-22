@@ -57,6 +57,14 @@ function renderBlock(block: ContentBlock) {
         </a>
       ) : null;
 
+    case 'audio':
+      return block.fileUrl ? (
+        <div className="content-item-audio">
+          <span>🎧 {block.originalName}</span>
+          <audio controls src={`${API_BASE}${block.fileUrl}`} />
+        </div>
+      ) : null;
+
     default:
       return null;
   }

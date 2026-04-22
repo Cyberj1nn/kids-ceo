@@ -6,6 +6,7 @@ import {
   getCategoryContent,
   getContentDetail,
   deleteContent,
+  reorderContent,
   type Category,
   type ContentListItem,
   type ContentDetail,
@@ -122,6 +123,24 @@ export default function ContentPage() {
     reloadContent();
   };
 
+  const moveItem = async (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= items.length) return;
+
+    const next = [...items];
+    [next[index], next[target]] = [next[target], next[index]];
+    const reindexed = next.map((it, i) => ({ ...it, sortOrder: i }));
+    setItems(reindexed);
+
+    try {
+      await reorderContent(reindexed.map((it) => ({ id: it.id, sortOrder: it.sortOrder })));
+    } catch (err) {
+      console.error('Reorder error:', err);
+      alert('Не удалось сохранить порядок');
+      reloadContent();
+    }
+  };
+
   if (loading) {
     return <div className="content-page-loading">Загрузка...</div>;
   }
@@ -178,15 +197,39 @@ export default function ContentPage() {
         {items.length === 0 ? (
           <div className="content-page-empty">Нет материалов</div>
         ) : (
-          items.map((item) => (
+          items.map((item, index) => (
             <div key={item.id} className="content-card" onClick={() => openDetail(item.id)}>
-              <h3 className="content-card-title">{item.title}</h3>
-              <div className="content-card-meta">
-                <span>{item.authorName}</span>
-                <span>·</span>
-                <span>{new Date(item.createdAt).toLocaleDateString('ru-RU')}</span>
-                {item.videoUrl && <span className="content-card-badge">🎬 Видео</span>}
+              <div className="content-card-main">
+                <h3 className="content-card-title">{item.title}</h3>
+                <div className="content-card-meta">
+                  <span>{item.authorName}</span>
+                  <span>·</span>
+                  <span>{new Date(item.createdAt).toLocaleDateString('ru-RU')}</span>
+                  {item.videoUrl && <span className="content-card-badge">🎬 Видео</span>}
+                </div>
               </div>
+              {isAdmin && (
+                <div className="content-card-reorder" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    className="content-card-reorder-btn"
+                    onClick={(e) => { e.stopPropagation(); moveItem(index, -1); }}
+                    disabled={index === 0}
+                    title="Переместить вверх"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    className="content-card-reorder-btn"
+                    onClick={(e) => { e.stopPropagation(); moveItem(index, 1); }}
+                    disabled={index === items.length - 1}
+                    title="Переместить вниз"
+                  >
+                    ↓
+                  </button>
+                </div>
+              )}
             </div>
           ))
         )}

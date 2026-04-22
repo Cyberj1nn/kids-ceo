@@ -15,6 +15,7 @@ const ADMIN_ROLES = roleCheck(['superadmin', 'admin', 'mentor']);
 const UPLOADS_DIR = path.join(__dirname, '..', '..', 'uploads');
 
 // MIME-типы и лимиты
+const EBOOK_MAX = 50 * 1024 * 1024;
 const ALLOWED_MIMES: Record<string, { fileType: string; maxSize: number }> = {
   'image/jpeg': { fileType: 'image', maxSize: 10 * 1024 * 1024 },
   'image/png': { fileType: 'image', maxSize: 10 * 1024 * 1024 },
@@ -25,7 +26,35 @@ const ALLOWED_MIMES: Record<string, { fileType: string; maxSize: number }> = {
   'audio/mp4': { fileType: 'audio', maxSize: 100 * 1024 * 1024 },
   'audio/ogg': { fileType: 'audio', maxSize: 100 * 1024 * 1024 },
   'audio/wav': { fileType: 'audio', maxSize: 100 * 1024 * 1024 },
+  'audio/x-wav': { fileType: 'audio', maxSize: 100 * 1024 * 1024 },
+  'audio/aac': { fileType: 'audio', maxSize: 100 * 1024 * 1024 },
+  'audio/flac': { fileType: 'audio', maxSize: 100 * 1024 * 1024 },
+  'audio/webm': { fileType: 'audio', maxSize: 100 * 1024 * 1024 },
+  'application/epub+zip': { fileType: 'ebook', maxSize: EBOOK_MAX },
+  'application/x-fictionbook+xml': { fileType: 'ebook', maxSize: EBOOK_MAX },
+  'application/x-mobipocket-ebook': { fileType: 'ebook', maxSize: EBOOK_MAX },
+  'application/vnd.amazon.ebook': { fileType: 'ebook', maxSize: EBOOK_MAX },
+  'application/rtf': { fileType: 'ebook', maxSize: EBOOK_MAX },
+  'text/rtf': { fileType: 'ebook', maxSize: EBOOK_MAX },
+  'application/msword': { fileType: 'ebook', maxSize: EBOOK_MAX },
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': { fileType: 'ebook', maxSize: EBOOK_MAX },
+  'text/plain': { fileType: 'ebook', maxSize: EBOOK_MAX },
 };
+
+// Расширения книжных форматов — для случаев, когда браузер отдаёт application/octet-stream
+const EBOOK_EXTENSIONS = new Set([
+  '.epub', '.fb2', '.mobi', '.azw', '.azw3', '.rtf', '.doc', '.docx', '.txt',
+]);
+
+function resolveFileType(file: Express.Multer.File): { fileType: string; maxSize: number } | null {
+  const known = ALLOWED_MIMES[file.mimetype];
+  if (known) return known;
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (EBOOK_EXTENSIONS.has(ext)) {
+    return { fileType: 'ebook', maxSize: EBOOK_MAX };
+  }
+  return null;
+}
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
@@ -42,7 +71,7 @@ const uploadMiddleware = multer({
   storage,
   limits: { fileSize: 100 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    if (ALLOWED_MIMES[file.mimetype]) {
+    if (resolveFileType(file)) {
       cb(null, true);
     } else {
       cb(new multer.MulterError('LIMIT_UNEXPECTED_FILE', file.fieldname));
@@ -58,7 +87,7 @@ function handleMulterError(err: any, _req: Request, res: Response, next: NextFun
       return;
     }
     if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-      res.status(400).json({ error: 'Недопустимый тип файла. Разрешены: изображения, PDF, аудио' });
+      res.status(400).json({ error: 'Недопустимый тип файла. Разрешены: изображения, PDF, аудио, электронные книги (EPUB, FB2, MOBI, RTF, DOC, DOCX, TXT)' });
       return;
     }
     res.status(400).json({ error: err.message });
@@ -85,7 +114,7 @@ router.post(
       }
 
       const contentItemId = req.body.contentItemId;
-      const mimeInfo = ALLOWED_MIMES[file.mimetype];
+      const mimeInfo = resolveFileType(file);
 
       // Проверка размера по типу
       if (mimeInfo && file.size > mimeInfo.maxSize) {

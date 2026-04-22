@@ -1,16 +1,16 @@
 import api from './axios';
 
-export type BlockType = 'text' | 'video' | 'image' | 'file';
+export type BlockType = 'text' | 'video' | 'image' | 'file' | 'audio';
 
 export interface ContentBlock {
   id: string;
   type: BlockType;
   content?: string;      // HTML для text-блока
   url?: string;          // Rutube URL для video-блока
-  fileUrl?: string;      // Путь к файлу для image/file-блоков
+  fileUrl?: string;      // Путь к файлу для image/file/audio-блоков
   originalName?: string;
   fileSize?: number;
-  fileType?: string;     // 'image' | 'pdf' | 'audio' | 'other'
+  fileType?: string;     // 'image' | 'pdf' | 'audio' | 'ebook' | 'other'
 }
 
 export interface Category {
@@ -110,6 +110,11 @@ export async function updateContent(id: string, payload: Partial<CreateContentPa
 
 export async function deleteContent(id: string) {
   const { data } = await api.delete(`/content/${id}`);
+  return data;
+}
+
+export async function reorderContent(items: { id: string; sortOrder: number }[]) {
+  const { data } = await api.patch('/content/reorder', { items });
   return data;
 }
 

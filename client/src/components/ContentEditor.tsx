@@ -18,6 +18,7 @@ const BLOCK_LABELS: Record<BlockType, string> = {
   video: 'Видео',
   image: 'Изображение',
   file: 'Файл',
+  audio: 'Аудио',
 };
 
 interface EditorBlock {
@@ -123,8 +124,14 @@ export default function ContentEditor({
   const handleFilePick = (index: number) => {
     pendingBlockIndexRef.current = index;
     if (fileInputRef.current) {
-      fileInputRef.current.accept =
-        blocks[index].type === 'image' ? 'image/*' : 'application/pdf';
+      const type = blocks[index].type;
+      if (type === 'image') {
+        fileInputRef.current.accept = 'image/*';
+      } else if (type === 'audio') {
+        fileInputRef.current.accept = 'audio/*';
+      } else {
+        fileInputRef.current.accept = 'application/pdf';
+      }
       fileInputRef.current.value = '';
       fileInputRef.current.click();
     }
@@ -171,7 +178,7 @@ export default function ContentEditor({
         const block: ContentBlock = { id: b.id, type: b.type };
         if (b.type === 'text') block.content = b.content;
         if (b.type === 'video') block.url = b.content;
-        if (b.type === 'image' || b.type === 'file') {
+        if (b.type === 'image' || b.type === 'file' || b.type === 'audio') {
           block.fileUrl = b.fileUrl;
           block.originalName = b.originalName;
           block.fileSize = b.fileSize;
@@ -290,7 +297,7 @@ export default function ContentEditor({
                   </div>
                 )}
 
-                {(block.type === 'image' || block.type === 'file') && (
+                {(block.type === 'image' || block.type === 'file' || block.type === 'audio') && (
                   <div className="block-file">
                     {block.uploading && (
                       <div className="block-uploading">Загрузка файла...</div>
@@ -317,6 +324,19 @@ export default function ContentEditor({
                         )}
                       </div>
                     )}
+                    {block.fileUrl && !block.uploading && block.type === 'audio' && (
+                      <div className="block-audio-preview">
+                        <div className="block-file-info">
+                          <span>🎧 {block.originalName}</span>
+                          {block.fileSize && (
+                            <span className="block-file-size">
+                              {(block.fileSize / 1024 / 1024).toFixed(1)} МБ
+                            </span>
+                          )}
+                        </div>
+                        <audio controls src={`${API_BASE}${block.fileUrl}`} />
+                      </div>
+                    )}
                     <button
                       type="button"
                       className="block-upload-btn"
@@ -327,6 +347,8 @@ export default function ContentEditor({
                         ? 'Заменить файл'
                         : block.type === 'image'
                         ? 'Выбрать изображение'
+                        : block.type === 'audio'
+                        ? 'Выбрать аудио (MP3, WAV, OGG, M4A)'
                         : 'Выбрать файл (PDF)'}
                     </button>
                   </div>
@@ -373,6 +395,13 @@ export default function ContentEditor({
                 onClick={() => addBlock('file')}
               >
                 Файл (PDF)
+              </button>
+              <button
+                type="button"
+                className="block-add-option"
+                onClick={() => addBlock('audio')}
+              >
+                Аудио
               </button>
               <button
                 type="button"

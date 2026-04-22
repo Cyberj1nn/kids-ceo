@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { query } from '../db/pool';
+import { pool, query } from '../db/pool';
 import { authJWT } from '../middleware/auth';
 import { roleCheck } from '../middleware/roleCheck';
 import { tabAccessCheck } from '../middleware/tabAccess';
@@ -320,6 +320,51 @@ router.put(
     } catch (err) {
       console.error('Content update error:', err);
       res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+  }
+);
+
+// ========================
+// PATCH /api/content/reorder
+// Массовое обновление sort_order (admin/mentor/superadmin)
+// body: { items: [{ id: string, sortOrder: number }, ...] }
+// ========================
+router.patch(
+  '/content/reorder',
+  authJWT,
+  ADMIN_ROLES,
+  async (req: AuthRequest, res: Response) => {
+    const { items } = req.body;
+
+    if (!Array.isArray(items) || items.length === 0) {
+      res.status(400).json({ error: 'Не передан список элементов' });
+      return;
+    }
+
+    for (const item of items) {
+      if (!item || typeof item.id !== 'string' || typeof item.sortOrder !== 'number') {
+        res.status(400).json({ error: 'Неверный формат элементов: ожидается { id, sortOrder }' });
+        return;
+      }
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      for (const item of items) {
+        await client.query(
+          'UPDATE content_items SET sort_order = $1 WHERE id = $2 AND deleted_at IS NULL',
+          [item.sortOrder, item.id]
+        );
+      }
+      await client.query('COMMIT');
+      res.json({ updated: items.length });
+    } catch (err) {
+      await client.query('ROLLBACK').catch(() => {});
+      console.error('Content reorder error:', err);
+      res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    } finally {
+      client.release();
     }
   }
 );
