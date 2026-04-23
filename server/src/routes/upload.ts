@@ -24,6 +24,8 @@ const ALLOWED_MIMES: Record<string, { fileType: string; maxSize: number }> = {
   'application/pdf': { fileType: 'pdf', maxSize: 50 * 1024 * 1024 },
   'audio/mpeg': { fileType: 'audio', maxSize: 100 * 1024 * 1024 },
   'audio/mp4': { fileType: 'audio', maxSize: 100 * 1024 * 1024 },
+  'audio/x-m4a': { fileType: 'audio', maxSize: 100 * 1024 * 1024 },
+  'audio/m4a': { fileType: 'audio', maxSize: 100 * 1024 * 1024 },
   'audio/ogg': { fileType: 'audio', maxSize: 100 * 1024 * 1024 },
   'audio/wav': { fileType: 'audio', maxSize: 100 * 1024 * 1024 },
   'audio/x-wav': { fileType: 'audio', maxSize: 100 * 1024 * 1024 },
@@ -46,12 +48,21 @@ const EBOOK_EXTENSIONS = new Set([
   '.epub', '.fb2', '.mobi', '.azw', '.azw3', '.rtf', '.doc', '.docx', '.txt',
 ]);
 
+// Расширения аудио — фоллбэк, когда браузер отдаёт неточный MIME (например, m4a как application/octet-stream)
+const AUDIO_EXTENSIONS = new Set([
+  '.mp3', '.m4a', '.mp4', '.aac', '.ogg', '.oga', '.opus', '.wav', '.flac', '.weba', '.webm',
+]);
+const AUDIO_MAX = 100 * 1024 * 1024;
+
 function resolveFileType(file: Express.Multer.File): { fileType: string; maxSize: number } | null {
   const known = ALLOWED_MIMES[file.mimetype];
   if (known) return known;
   const ext = path.extname(file.originalname).toLowerCase();
   if (EBOOK_EXTENSIONS.has(ext)) {
     return { fileType: 'ebook', maxSize: EBOOK_MAX };
+  }
+  if (AUDIO_EXTENSIONS.has(ext)) {
+    return { fileType: 'audio', maxSize: AUDIO_MAX };
   }
   return null;
 }
@@ -115,6 +126,7 @@ router.post(
 
       const contentItemId = req.body.contentItemId;
       const mimeInfo = resolveFileType(file);
+      const originalName = Buffer.from(file.originalname, 'latin1').toString('utf8');
 
       // Проверка размера по типу
       if (mimeInfo && file.size > mimeInfo.maxSize) {
@@ -143,7 +155,7 @@ router.post(
            VALUES ($1, $2, $3, $4, $5)
            RETURNING id, file_type AS "fileType", file_url AS "fileUrl",
                      file_size AS "fileSize", original_name AS "originalName"`,
-          [contentItemId, fileType, fileUrl, file.size, file.originalname]
+          [contentItemId, fileType, fileUrl, file.size, originalName]
         );
 
         res.status(201).json(rows[0]);
@@ -152,7 +164,7 @@ router.post(
           fileUrl,
           fileType,
           fileSize: file.size,
-          originalName: file.originalname,
+          originalName,
         });
       }
     } catch (err) {

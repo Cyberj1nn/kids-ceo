@@ -64,7 +64,7 @@ export default function FileUploader({ contentItemId, attachments, onAttachments
           ref={inputRef}
           type="file"
           multiple
-          accept="image/*,.pdf,audio/*,.epub,.fb2,.mobi,.azw,.azw3,.rtf,.doc,.docx,.txt"
+          accept="image/*,.pdf,audio/*,.mp3,.m4a,.mp4,.aac,.ogg,.opus,.wav,.flac,.epub,.fb2,.mobi,.azw,.azw3,.rtf,.doc,.docx,.txt"
           onChange={(e) => e.target.files && handleFiles(e.target.files)}
           hidden
         />
