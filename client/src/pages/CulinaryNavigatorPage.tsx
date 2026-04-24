@@ -56,7 +56,7 @@ export default function CulinaryNavigatorPage() {
               <span className="cln-meal__tag">утро</span>
               <span className="cln-meal__num">01</span>
               <h3 className="cln-meal__ttl">Завтрак</h3>
-              <p className="cln-meal__sub">Овсянка с&nbsp;бананом и&nbsp;арахисовой пастой&nbsp;— заряд на&nbsp;первую пару за&nbsp;7&nbsp;минут.</p>
+              <p className="cln-meal__sub">Овсяный блин&nbsp;— сытный завтрак из&nbsp;трёх ингредиентов за&nbsp;10&nbsp;минут.</p>
               <span className="cln-meal__cta">
                 Открыть рецепт
                 <ArrowRight />
@@ -67,7 +67,7 @@ export default function CulinaryNavigatorPage() {
               <span className="cln-meal__tag">день</span>
               <span className="cln-meal__num">02</span>
               <h3 className="cln-meal__ttl">Обед</h3>
-              <p className="cln-meal__sub">Паста с&nbsp;курицей и&nbsp;сливочным соусом&nbsp;— сытно и&nbsp;быстро, в&nbsp;одной сковороде.</p>
+              <p className="cln-meal__sub">Овощной крем-суп&nbsp;— полезно и&nbsp;сытно, в&nbsp;одной кастрюле.</p>
               <span className="cln-meal__cta">
                 Открыть рецепт
                 <ArrowRight />
@@ -78,7 +78,7 @@ export default function CulinaryNavigatorPage() {
               <span className="cln-meal__tag">вечер</span>
               <span className="cln-meal__num">03</span>
               <h3 className="cln-meal__ttl">Ужин</h3>
-              <p className="cln-meal__sub">Запечённые овощи с&nbsp;сыром и&nbsp;куриным филе&nbsp;— лёгкий ужин без&nbsp;тяжести.</p>
+              <p className="cln-meal__sub">Ленивая пицца на&nbsp;сковороде&nbsp;— без&nbsp;теста и&nbsp;духовки, 20&nbsp;минут под&nbsp;крышкой.</p>
               <span className="cln-meal__cta">
                 Открыть рецепт
                 <ArrowRight />

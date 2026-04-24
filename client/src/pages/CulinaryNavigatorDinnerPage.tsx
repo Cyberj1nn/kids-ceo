@@ -45,21 +45,21 @@ export default function CulinaryNavigatorDinnerPage() {
           <div className="cln-rhero__text">
             <div className="cln-rhero__crumbs">Кулинарный навигатор&nbsp;/&nbsp;<b>Ужин</b></div>
             <span className="cln-eyebrow">рецепт №&nbsp;03 · вечер</span>
-            <h1 className="cln-rhero__ttl">Запечённые овощи с&nbsp;курицей и&nbsp;сыром</h1>
+            <h1 className="cln-rhero__ttl">Ленивая пицца на&nbsp;сковороде</h1>
             <p className="cln-rhero__lead">
-              Лёгкий ужин на&nbsp;одном противне: сочная курица, карамелизованные овощи и&nbsp;расплавленный сыр сверху. Минимум мытья посуды, максимум пользы&nbsp;— то, что нужно после долгого дня.
+              Пицца без&nbsp;теста и&nbsp;духовки. Смешал жидкое тесто на&nbsp;сметане, вылил на&nbsp;сковороду, засыпал начинкой&nbsp;— через 20&nbsp;минут под&nbsp;крышкой у&nbsp;тебя свежая пицца.
             </p>
             <div className="cln-rhero__stats">
               <div className="cln-stat"><div className="cln-stat__n">35 мин</div><div className="cln-stat__l">время</div></div>
               <div className="cln-stat"><div className="cln-stat__n">2</div><div className="cln-stat__l">порции</div></div>
               <div className="cln-stat"><div className="cln-stat__n">★★☆</div><div className="cln-stat__l">сложность</div></div>
-              <div className="cln-stat"><div className="cln-stat__n">≈ 280₽</div><div className="cln-stat__l">бюджет</div></div>
+              <div className="cln-stat"><div className="cln-stat__n">~500</div><div className="cln-stat__l">ккал</div></div>
             </div>
           </div>
 
           <aside className="cln-rhero__photo cln-rhero__photo--dinner">
             <span className="cln-rhero__sticker cln-rhero__sticker--dinner">ужин</span>
-            <div className="cln-rhero__caption">«Поставил в&nbsp;духовку&nbsp;— и&nbsp;успеваешь досмотреть серию.»</div>
+            <div className="cln-rhero__caption">«Тесто на&nbsp;сметане, сковорода, крышка&nbsp;— никакой духовки.»</div>
           </aside>
         </div>
       </section>
@@ -71,16 +71,16 @@ export default function CulinaryNavigatorDinnerPage() {
             <span className="cln-eyebrow">что нужно</span>
             <h2 className="cln-ing__ttl">Ингредиенты</h2>
             <ul className="cln-ing__list">
-              <li><span>Куриное филе (или&nbsp;бёдра)</span><b>300 г</b></li>
-              <li><span>Картофель молодой</span><b>3 шт</b></li>
-              <li><span>Кабачок</span><b>1 небольшой</b></li>
-              <li><span>Перец болгарский</span><b>1 шт</b></li>
-              <li><span>Помидоры черри</span><b>8–10 шт</b></li>
-              <li><span>Сыр (моцарелла&nbsp;/ твёрдый)</span><b>80 г</b></li>
-              <li><span>Оливковое масло</span><b>2 ст.л.</b></li>
-              <li><span>Сушёные травы (орегано, тимьян)</span><b>1 ч.л.</b></li>
-              <li><span>Чеснок</span><b>2 зубчика</b></li>
-              <li><span>Соль, перец</span><b>по вкусу</b></li>
+              <li><span>Мука</span><b>100–120 г</b></li>
+              <li><span>Яйцо</span><b>1 шт</b></li>
+              <li><span>Сметана</span><b>4 ст.л.</b></li>
+              <li><span>Подсолнечное масло</span><b>3 ст.л.</b></li>
+              <li><span>Кетчуп</span><b>4 ст.л.</b></li>
+              <li><span>Помидоры</span><b>2 шт</b></li>
+              <li><span>Сыр (моцарелла)</span><b>120 г</b></li>
+              <li><span>Тёртый пармезан</span><b>50 г</b></li>
+              <li><span>Базилик</span><b>пучок</b></li>
+              <li><span>Соль, чёрный перец</span><b>по вкусу</b></li>
             </ul>
           </aside>
 
@@ -91,48 +91,40 @@ export default function CulinaryNavigatorDinnerPage() {
             <div className="cln-step">
               <div className="cln-step__n">1</div>
               <div className="cln-step__body">
-                <h3 className="cln-step__h">Разогрей духовку</h3>
-                <p className="cln-step__t">Включи духовку на&nbsp;<b>200&nbsp;°C</b>&nbsp;— она прогреется, пока ты&nbsp;нарезаешь овощи. Противень застели пергаментом или слегка смажь маслом.</p>
+                <h3 className="cln-step__h">Замешай тесто</h3>
+                <p className="cln-step__t">Смешай сметану, яйцо, <b>1 ст.л.&nbsp;масла</b> и&nbsp;щепотку соли. Всыпь муку и&nbsp;перемешай до&nbsp;состояния <b>жидкого теста</b>. Дай постоять 10&nbsp;минут.</p>
               </div>
             </div>
 
             <div className="cln-step">
               <div className="cln-step__n">2</div>
               <div className="cln-step__body">
-                <h3 className="cln-step__h">Подготовь овощи</h3>
-                <p className="cln-step__t">Картофель разрежь пополам (или на&nbsp;четвертинки, если крупный), кабачок&nbsp;— крупными кружками, перец&nbsp;— полосками, черри оставь целыми. Чеснок раздави плоской стороной ножа&nbsp;— кожицу не&nbsp;снимай.</p>
+                <h3 className="cln-step__h">Подготовь начинку</h3>
+                <p className="cln-step__t">Нарежь помидоры и&nbsp;сыр (моцареллу) <b>тонкими кружками</b>, измельчи базилик. Пармезан натри на&nbsp;мелкой тёрке.</p>
               </div>
             </div>
 
             <div className="cln-step">
               <div className="cln-step__n">3</div>
               <div className="cln-step__body">
-                <h3 className="cln-step__h">Замаринуй курицу и&nbsp;овощи</h3>
-                <p className="cln-step__t">Филе нарежь крупными кусками. В&nbsp;большой миске соедини курицу и&nbsp;овощи, добавь оливковое масло, травы, соль, перец. <b>Перемешай руками</b>&nbsp;— так маринад лучше распределится.</p>
+                <h3 className="cln-step__h">Сделай основу</h3>
+                <p className="cln-step__t">Вылей тесто на&nbsp;разогретую с&nbsp;маслом сковороду и&nbsp;разровняй. Слегка подсуши под&nbsp;крышкой <b>2&nbsp;минуты</b> на&nbsp;слабом огне.</p>
               </div>
             </div>
 
             <div className="cln-step">
               <div className="cln-step__n">4</div>
               <div className="cln-step__body">
-                <h3 className="cln-step__h">Отправь в&nbsp;духовку</h3>
-                <p className="cln-step__t">Выложи всё на&nbsp;противень ровным слоем&nbsp;— <b>не&nbsp;нагромождая горкой</b>, иначе получится тушёнка, а&nbsp;не&nbsp;запечёнка. Запекай 20&nbsp;минут, затем перемешай лопаткой.</p>
+                <h3 className="cln-step__h">Собери пиццу</h3>
+                <p className="cln-step__t">Смажь основу <b>кетчупом</b> равномерным слоем. Сверху выложи базилик, затем сыр, сверху помидоры. Посыпь пармезаном.</p>
               </div>
             </div>
 
             <div className="cln-step">
               <div className="cln-step__n">5</div>
               <div className="cln-step__body">
-                <h3 className="cln-step__h">Добавь сыр</h3>
-                <p className="cln-step__t">Посыпь тёртым сыром (или выложи ломтиками моцареллы) и&nbsp;верни в&nbsp;духовку ещё на&nbsp;<b>8–10&nbsp;минут</b>&nbsp;— до&nbsp;золотистой корочки и&nbsp;румяных овощей.</p>
-              </div>
-            </div>
-
-            <div className="cln-step">
-              <div className="cln-step__n">6</div>
-              <div className="cln-step__body">
-                <h3 className="cln-step__h">Подавай горячим</h3>
-                <p className="cln-step__t">Дай постоять 2–3&nbsp;минуты&nbsp;— соки разойдутся. По&nbsp;желанию посыпь свежей зеленью и&nbsp;сбрызни лимонным соком. Можно есть прямо с&nbsp;противня.</p>
+                <h3 className="cln-step__h">Томи под&nbsp;крышкой</h3>
+                <p className="cln-step__t">Томи на&nbsp;<b>медленном огне</b> около 20&nbsp;минут, пока сыр полностью не&nbsp;расплавится. Готово&nbsp;— ешь горячей!</p>
               </div>
             </div>
 
@@ -140,7 +132,7 @@ export default function CulinaryNavigatorDinnerPage() {
               <div className="cln-tip__ico"><TipIcon /></div>
               <div>
                 <div className="cln-tip__h">лайфхак студента</div>
-                <p className="cln-tip__t">Нет духовки? Всё&nbsp;то&nbsp;же самое можно сделать в&nbsp;большой сковороде под&nbsp;крышкой&nbsp;— только овощи нарежь помельче, а&nbsp;сыр добавь в&nbsp;самом конце и&nbsp;дай&nbsp;расплавиться.</p>
+                <p className="cln-tip__t">Моцарелла тянется красивее, но&nbsp;любой плавящийся сыр тоже подойдёт&nbsp;— главное, крупно натереть и&nbsp;не&nbsp;экономить.</p>
               </div>
             </div>
           </div>

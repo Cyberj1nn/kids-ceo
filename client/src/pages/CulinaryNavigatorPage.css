@@ -211,13 +211,13 @@ h1.cln-hero__headline {
 .cln-meal:hover { transform: translateY(-6px); box-shadow: var(--shadow-lift); }
 
 .cln-meal--breakfast::before {
-  background-image: url('https://images.unsplash.com/photo-1525351484163-7529414344d8?w=1000&q=80&auto=format&fit=crop');
+  background-image: url('https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=1000&q=80&auto=format&fit=crop');
 }
 .cln-meal--lunch::before {
-  background-image: url('https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1000&q=80&auto=format&fit=crop');
+  background-image: url('https://images.unsplash.com/photo-1547592166-23ac45744acd?w=1000&q=80&auto=format&fit=crop');
 }
 .cln-meal--dinner::before {
-  background-image: url('https://images.unsplash.com/photo-1559847844-5315695dadae?w=1000&q=80&auto=format&fit=crop');
+  background-image: url('https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1000&q=80&auto=format&fit=crop');
 }
 
 .cln-meal__tag {
@@ -370,17 +370,17 @@ h3.cln-meal__ttl {
 .cln-rhero__photo--breakfast {
   background-image:
     linear-gradient(160deg, rgba(74,58,44,0) 45%, rgba(74,58,44,.5)),
-    url('https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=1200&q=80&auto=format&fit=crop');
+    url('https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=1200&q=80&auto=format&fit=crop');
 }
 .cln-rhero__photo--lunch {
   background-image:
     linear-gradient(160deg, rgba(74,58,44,0) 45%, rgba(74,58,44,.5)),
-    url('https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=1200&q=80&auto=format&fit=crop');
+    url('https://images.unsplash.com/photo-1547592166-23ac45744acd?w=1200&q=80&auto=format&fit=crop');
 }
 .cln-rhero__photo--dinner {
   background-image:
     linear-gradient(160deg, rgba(74,58,44,0) 45%, rgba(74,58,44,.55)),
-    url('https://images.unsplash.com/photo-1544025162-d76694265947?w=1200&q=80&auto=format&fit=crop');
+    url('https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1200&q=80&auto=format&fit=crop');
 }
 
 .cln-rhero__sticker {

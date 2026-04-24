@@ -45,21 +45,21 @@ export default function CulinaryNavigatorBreakfastPage() {
           <div className="cln-rhero__text">
             <div className="cln-rhero__crumbs">Кулинарный навигатор&nbsp;/&nbsp;<b>Завтрак</b></div>
             <span className="cln-eyebrow">рецепт №&nbsp;01 · утро</span>
-            <h1 className="cln-rhero__ttl">Овсянка с&nbsp;бананом и&nbsp;арахисовой пастой</h1>
+            <h1 className="cln-rhero__ttl">Овсяный блин</h1>
             <p className="cln-rhero__lead">
-              Бодрящий завтрак, который готовится быстрее, чем закипает чайник. Сладость банана, ореховая паста и&nbsp;капля мёда превращают обычную овсянку в&nbsp;приличный завтрак&nbsp;— и&nbsp;даёт энергию до&nbsp;обеда.
+              Быстрый сытный завтрак из&nbsp;трёх ингредиентов&nbsp;— хлопьев, яйца и&nbsp;капли масла. 10&nbsp;минут на&nbsp;всё, одна сковорода, никакой готовки накануне.
             </p>
             <div className="cln-rhero__stats">
-              <div className="cln-stat"><div className="cln-stat__n">7 мин</div><div className="cln-stat__l">время</div></div>
+              <div className="cln-stat"><div className="cln-stat__n">10 мин</div><div className="cln-stat__l">время</div></div>
               <div className="cln-stat"><div className="cln-stat__n">1</div><div className="cln-stat__l">порция</div></div>
               <div className="cln-stat"><div className="cln-stat__n">★☆☆</div><div className="cln-stat__l">сложность</div></div>
-              <div className="cln-stat"><div className="cln-stat__n">≈ 90₽</div><div className="cln-stat__l">бюджет</div></div>
+              <div className="cln-stat"><div className="cln-stat__n">~370</div><div className="cln-stat__l">ккал</div></div>
             </div>
           </div>
 
           <aside className="cln-rhero__photo cln-rhero__photo--breakfast">
             <span className="cln-rhero__sticker cln-rhero__sticker--breakfast">завтрак</span>
-            <div className="cln-rhero__caption">«Встал, насыпал, залил&nbsp;— готово. Чайник ещё&nbsp;свистит.»</div>
+            <div className="cln-rhero__caption">«Разбил яйцо, смешал с&nbsp;хлопьями&nbsp;— и&nbsp;блин готов.»</div>
           </aside>
         </div>
       </section>
@@ -71,13 +71,11 @@ export default function CulinaryNavigatorBreakfastPage() {
             <span className="cln-eyebrow">что нужно</span>
             <h2 className="cln-ing__ttl">Ингредиенты</h2>
             <ul className="cln-ing__list">
-              <li><span>Овсяные хлопья</span><b>50 г</b></li>
-              <li><span>Молоко (или&nbsp;вода)</span><b>200 мл</b></li>
-              <li><span>Банан, спелый</span><b>1 шт</b></li>
-              <li><span>Арахисовая паста</span><b>1 ст.л.</b></li>
-              <li><span>Мёд</span><b>1 ч.л.</b></li>
-              <li><span>Корица молотая</span><b>щепотка</b></li>
-              <li><span>Соль</span><b>по вкусу</b></li>
+              <li><span>Овсяные/ячменные хлопья (или&nbsp;смесь)</span><b>50 г</b></li>
+              <li><span>Яйцо</span><b>1 шт</b></li>
+              <li><span>Масло растительное</span><b>1 ст.л.</b></li>
+              <li><span>Специи</span><b>по вкусу</b></li>
+              <li><span>Соль</span><b>щепотка</b></li>
             </ul>
           </aside>
 
@@ -88,40 +86,56 @@ export default function CulinaryNavigatorBreakfastPage() {
             <div className="cln-step">
               <div className="cln-step__n">1</div>
               <div className="cln-step__body">
-                <h3 className="cln-step__h">Закипяти жидкость</h3>
-                <p className="cln-step__t">В&nbsp;небольшом ковшике доведи молоко (или&nbsp;воду) до&nbsp;лёгкого кипения. Добавь щепотку соли&nbsp;— она <b>раскроет вкус</b>, хлопья не&nbsp;станут пресными.</p>
+                <h3 className="cln-step__h">Разогрей сковороду</h3>
+                <p className="cln-step__t">Поставь сковороду на&nbsp;<b>средний огонь</b>, добавь немного масла. Пока прогревается&nbsp;— готовь смесь.</p>
               </div>
             </div>
 
             <div className="cln-step">
               <div className="cln-step__n">2</div>
               <div className="cln-step__body">
-                <h3 className="cln-step__h">Засыпь овсянку</h3>
-                <p className="cln-step__t">Всыпь хлопья, убавь огонь до&nbsp;минимума и&nbsp;вари, помешивая, <b>3–4&nbsp;минуты</b> до&nbsp;густоты. Если любишь пожиже&nbsp;— добавь ещё 30&nbsp;мл молока.</p>
+                <h3 className="cln-step__h">Взбей яйцо</h3>
+                <p className="cln-step__t">В&nbsp;миску разбей яйцо и&nbsp;взбей вилкой до&nbsp;однородности&nbsp;— без&nbsp;фанатизма, просто чтобы белок и&nbsp;желток соединились.</p>
               </div>
             </div>
 
             <div className="cln-step">
               <div className="cln-step__n">3</div>
               <div className="cln-step__body">
-                <h3 className="cln-step__h">Подготовь банан</h3>
-                <p className="cln-step__t">Половину банана нарежь кружочками, вторую половину разомни вилкой в&nbsp;пюре&nbsp;— оно даст естественную сладость прямо в&nbsp;кашу.</p>
+                <h3 className="cln-step__h">Добавь хлопья</h3>
+                <p className="cln-step__t">Всыпь хлопья так, чтобы они <b>легли плотным слоем</b> на&nbsp;яйцо. Добавь щепотку соли и&nbsp;специи&nbsp;— паприка, чёрный перец, сухие травы.</p>
               </div>
             </div>
 
             <div className="cln-step">
               <div className="cln-step__n">4</div>
               <div className="cln-step__body">
-                <h3 className="cln-step__h">Смешай основу</h3>
-                <p className="cln-step__t">Сними ковшик с&nbsp;огня, вмешай банановое пюре, арахисовую пасту и&nbsp;мёд. Перемешивай <b>не&nbsp;дольше 30&nbsp;секунд</b>&nbsp;— паста должна едва разойтись, создавая прожилки.</p>
+                <h3 className="cln-step__h">Размешай массу</h3>
+                <p className="cln-step__t">Тщательно перемешай, чтобы <b>каждый хлопушок</b> обволокся яйцом&nbsp;— иначе блин будет рассыпаться.</p>
               </div>
             </div>
 
             <div className="cln-step">
               <div className="cln-step__n">5</div>
               <div className="cln-step__body">
-                <h3 className="cln-step__h">Подавай</h3>
-                <p className="cln-step__t">Переложи в&nbsp;тарелку, сверху разложи кружочки банана, присыпь корицей. По&nbsp;желанию&nbsp;— капля мёда и&nbsp;горсть орехов.</p>
+                <h3 className="cln-step__h">Вылей на&nbsp;сковородку</h3>
+                <p className="cln-step__t">Выложи массу на&nbsp;разогретую сковороду и&nbsp;разровняй вилкой так, чтобы <b>толщина блина была равномерной</b>.</p>
+              </div>
+            </div>
+
+            <div className="cln-step">
+              <div className="cln-step__n">6</div>
+              <div className="cln-step__body">
+                <h3 className="cln-step__h">Переверни</h3>
+                <p className="cln-step__t">Как только нижняя часть начнёт <b>румяниться</b>&nbsp;— переверни блин лопаткой. Держи на&nbsp;сковороде до&nbsp;золотистой корочки с&nbsp;обеих сторон.</p>
+              </div>
+            </div>
+
+            <div className="cln-step">
+              <div className="cln-step__n">7</div>
+              <div className="cln-step__body">
+                <h3 className="cln-step__h">Сервируй</h3>
+                <p className="cln-step__t">Сними со&nbsp;сковородки, подавай тёплым. Сверху&nbsp;— что угодно: мёд, ягоды, сыр, авокадо или&nbsp;просто сметана.</p>
               </div>
             </div>
 
@@ -129,7 +143,7 @@ export default function CulinaryNavigatorBreakfastPage() {
               <div className="cln-tip__ico"><TipIcon /></div>
               <div>
                 <div className="cln-tip__h">лайфхак студента</div>
-                <p className="cln-tip__t">Нет плиты? Залей хлопья молоком с&nbsp;вечера, оставь в&nbsp;холодильнике&nbsp;— утром получишь «ленивую овсянку» без&nbsp;варки.</p>
+                <p className="cln-tip__t">Добавь сверху мёд, банан или&nbsp;сыр&nbsp;— один и&nbsp;тот же блин превращается в&nbsp;сладкий или&nbsp;солёный завтрак.</p>
               </div>
             </div>
           </div>
