@@ -107,7 +107,7 @@ h1.cln-hero__headline {
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: -0.02em;
-  margin: 18px 0 18px;
+  margin: 72px 0 18px;
   color: var(--cream-50);
 }
 .cln-hero__headline em {
@@ -513,6 +513,7 @@ h2.cln-ing__ttl {
   .cln-hero__grid { grid-template-columns: 1fr; gap: 18px; }
   .cln-hero__tile { padding: 32px 24px 36px; }
   .cln-hero__sticker { position: static; margin: 0 0 12px; text-align: left; transform: rotate(-3deg); max-width: none; }
+  h1.cln-hero__headline { margin-top: 18px; }
   .cln-hero__photo { min-height: 260px; }
   .cln-meals { padding: 56px 0 64px; }
   .cln-meals__grid { grid-template-columns: 1fr; gap: 18px; }
