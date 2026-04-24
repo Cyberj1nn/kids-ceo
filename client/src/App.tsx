@@ -15,6 +15,10 @@ import AdminPage from './pages/AdminPage';
 import EnglishLessonsPage from './pages/EnglishLessonsPage';
 import EnglishLessonsSuccessPage from './pages/EnglishLessonsSuccessPage';
 import EnglishLessonsFailPage from './pages/EnglishLessonsFailPage';
+import CulinaryNavigatorPage from './pages/CulinaryNavigatorPage';
+import CulinaryNavigatorBreakfastPage from './pages/CulinaryNavigatorBreakfastPage';
+import CulinaryNavigatorLunchPage from './pages/CulinaryNavigatorLunchPage';
+import CulinaryNavigatorDinnerPage from './pages/CulinaryNavigatorDinnerPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 // Вкладки с подкатегориями → ContentPage
@@ -34,6 +38,11 @@ export default function App() {
               <Route path="/english_lessons" element={<EnglishLessonsPage />} />
               <Route path="/english_lessons/success" element={<EnglishLessonsSuccessPage />} />
               <Route path="/english_lessons/fail" element={<EnglishLessonsFailPage />} />
+
+              <Route path="/Culinary_Navigator" element={<CulinaryNavigatorPage />} />
+              <Route path="/Culinary_Navigator/breakfast" element={<CulinaryNavigatorBreakfastPage />} />
+              <Route path="/Culinary_Navigator/lunch" element={<CulinaryNavigatorLunchPage />} />
+              <Route path="/Culinary_Navigator/dinner" element={<CulinaryNavigatorDinnerPage />} />
 
               <Route
                 path="/"
