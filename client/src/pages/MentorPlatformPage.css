@@ -598,7 +598,11 @@
   flex-shrink: 0;
   width: 18px; height: 18px;
   color: var(--brand);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
+.mp-features__ext-ico svg { width: 18px; height: 18px; display: block; }
 
 /* =================================================================
    Case (кейс Kids CEO)
@@ -854,9 +858,6 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
-  max-width: 880px;
-  margin: 0 auto;
-  justify-content: center;
 }
 @media (min-width: 768px) {
   .mp-getlist__list {

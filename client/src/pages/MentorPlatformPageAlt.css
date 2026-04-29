@@ -600,7 +600,11 @@
   flex-shrink: 0;
   width: 18px; height: 18px;
   color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
+.mpa-features__ext-ico svg { width: 18px; height: 18px; display: block; }
 
 /* =================================================================
    Case
@@ -855,9 +859,6 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
-  max-width: 880px;
-  margin: 0 auto;
-  justify-content: center;
 }
 @media (min-width: 768px) {
   .mpa-getlist__list {
