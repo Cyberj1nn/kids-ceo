@@ -42,6 +42,23 @@
   margin-bottom: 24px;
 }
 
+.content-page-subcategories {
+  margin-top: -16px;
+  margin-bottom: 24px;
+  padding-left: 12px;
+  border-left: 2px solid #e5e7eb;
+}
+
+.category-chip--sub {
+  font-size: 12px;
+  padding: 6px 14px;
+  background: #f9fafb;
+}
+
+.category-chip--sub.category-chip--active {
+  background: #6c63ff;
+}
+
 .category-chip {
   padding: 8px 16px;
   border: 1px solid #e5e7eb;

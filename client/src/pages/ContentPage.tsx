@@ -32,6 +32,7 @@ export default function ContentPage() {
   const [tabData, setTabData] = useState<Tab | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
+  const [activeParent, setActiveParent] = useState<number | null>(null);
   const [items, setItems] = useState<ContentListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -58,15 +59,43 @@ export default function ContentPage() {
     setDetail(null);
     setEditorMode(null);
     setActiveCategory(null);
+    setActiveParent(null);
     setItems([]);
     getCategories(tab)
       .then((cats) => {
         setCategories(cats);
-        if (cats.length > 0) setActiveCategory(cats[0].id);
+        const parents = cats.filter((c) => c.parentId === null);
+        if (parents.length > 0) {
+          const firstParent = parents[0];
+          const firstChildren = cats.filter((c) => c.parentId === firstParent.id);
+          if (firstChildren.length > 0) {
+            setActiveParent(firstParent.id);
+            setActiveCategory(firstChildren[0].id);
+          } else {
+            setActiveParent(null);
+            setActiveCategory(firstParent.id);
+          }
+        }
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [tab]);
+
+  const parentCategories = categories.filter((c) => c.parentId === null);
+  const childCategories = activeParent
+    ? categories.filter((c) => c.parentId === activeParent)
+    : [];
+
+  const selectParent = (parent: Category) => {
+    const children = categories.filter((c) => c.parentId === parent.id);
+    if (children.length > 0) {
+      setActiveParent(parent.id);
+      setActiveCategory(children[0].id);
+    } else {
+      setActiveParent(null);
+      setActiveCategory(parent.id);
+    }
+  };
 
   const reloadContent = useCallback(() => {
     if (!activeCategory) return;
@@ -179,12 +208,31 @@ export default function ContentPage() {
         )}
       </div>
 
-      {categories.length > 0 && (
+      {parentCategories.length > 0 && (
         <div className="content-page-categories">
-          {categories.map((cat) => (
+          {parentCategories.map((cat) => {
+            const isActive =
+              activeParent === cat.id ||
+              (activeParent === null && activeCategory === cat.id);
+            return (
+              <button
+                key={cat.id}
+                className={`category-chip ${isActive ? 'category-chip--active' : ''}`}
+                onClick={() => selectParent(cat)}
+              >
+                {cat.name}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {childCategories.length > 0 && (
+        <div className="content-page-categories content-page-subcategories">
+          {childCategories.map((cat) => (
             <button
               key={cat.id}
-              className={`category-chip ${activeCategory === cat.id ? 'category-chip--active' : ''}`}
+              className={`category-chip category-chip--sub ${activeCategory === cat.id ? 'category-chip--active' : ''}`}
               onClick={() => setActiveCategory(cat.id)}
             >
               {cat.name}

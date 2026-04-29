@@ -29,7 +29,7 @@ router.get(
       }
 
       const { rows } = await query(
-        `SELECT id, name, slug, sort_order AS "sortOrder"
+        `SELECT id, name, slug, sort_order AS "sortOrder", parent_id AS "parentId"
          FROM categories WHERE tab_id = $1 ORDER BY sort_order`,
         [tabRows[0].id]
       );

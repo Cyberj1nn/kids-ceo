@@ -31,7 +31,8 @@ async function seed() {
   // =====================
   // 2. Seed подкатегорий
   // =====================
-  const categories: { tab_slug: string; items: { name: string; slug: string }[] }[] = [
+  type CategoryItem = { name: string; slug: string; children?: CategoryItem[] };
+  const categories: { tab_slug: string; items: CategoryItem[] }[] = [
     {
       tab_slug: 'lectures',
       items: [
@@ -49,9 +50,29 @@ async function seed() {
     {
       tab_slug: 'instructions',
       items: [
-        { name: 'Команда', slug: 'team' },
-        { name: 'Маркетинг', slug: 'marketing' },
-        { name: 'Продажи', slug: 'sales' },
+        {
+          name: 'Команда', slug: 'team',
+          children: [
+            { name: 'Найм', slug: 'team-hiring' },
+            { name: 'Ассистент', slug: 'team-assistant' },
+            { name: 'Команда', slug: 'team-team' },
+          ],
+        },
+        {
+          name: 'Маркетинг', slug: 'marketing',
+          children: [
+            { name: 'Анализ', slug: 'marketing-analysis' },
+            { name: 'Социальные сети', slug: 'marketing-social' },
+            { name: 'Каналы привлечения', slug: 'marketing-channels' },
+          ],
+        },
+        {
+          name: 'Продажи', slug: 'sales',
+          children: [
+            { name: 'Клиенты', slug: 'sales-clients' },
+            { name: 'Менеджер', slug: 'sales-manager' },
+          ],
+        },
         { name: 'Учёт', slug: 'bookkeeping' },
         { name: 'Руководитель', slug: 'manager' },
         { name: 'Открытие', slug: 'opening' },
@@ -91,15 +112,31 @@ async function seed() {
     }
     const tabId = rows[0].id;
 
+    let total = 0;
     for (let i = 0; i < group.items.length; i++) {
       const item = group.items[i];
-      await pool.query(
-        `INSERT INTO categories (tab_id, name, slug, sort_order) VALUES ($1, $2, $3, $4)
-         ON CONFLICT (tab_id, slug) DO NOTHING`,
+      const { rows: parentRows } = await pool.query(
+        `INSERT INTO categories (tab_id, parent_id, name, slug, sort_order) VALUES ($1, NULL, $2, $3, $4)
+         ON CONFLICT (tab_id, slug) DO UPDATE SET name = EXCLUDED.name
+         RETURNING id`,
         [tabId, item.name, item.slug, i + 1]
       );
+      const parentId = parentRows[0].id;
+      total++;
+
+      if (item.children) {
+        for (let j = 0; j < item.children.length; j++) {
+          const child = item.children[j];
+          await pool.query(
+            `INSERT INTO categories (tab_id, parent_id, name, slug, sort_order) VALUES ($1, $2, $3, $4, $5)
+             ON CONFLICT (tab_id, slug) DO UPDATE SET parent_id = EXCLUDED.parent_id, name = EXCLUDED.name`,
+            [tabId, parentId, child.name, child.slug, j + 1]
+          );
+          total++;
+        }
+      }
     }
-    console.log(`  Categories seeded for "${group.tab_slug}" (${group.items.length})`);
+    console.log(`  Categories seeded for "${group.tab_slug}" (${total})`);
   }
 
   // =====================

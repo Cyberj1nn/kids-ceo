@@ -18,6 +18,7 @@ export interface Category {
   name: string;
   slug: string;
   sortOrder: number;
+  parentId: number | null;
 }
 
 export interface ContentListItem {
