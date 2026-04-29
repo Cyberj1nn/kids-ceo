@@ -274,15 +274,27 @@ router.put(
   ADMIN_ROLES,
   async (req: AuthRequest, res: Response) => {
     try {
-      const { title, body, contentType, videoUrl, blocks, sortOrder } = req.body;
+      const { title, body, contentType, videoUrl, blocks, sortOrder, categoryId } = req.body;
 
       const { rows: existing } = await query(
-        'SELECT id FROM content_items WHERE id = $1 AND deleted_at IS NULL',
+        'SELECT id, tab_id FROM content_items WHERE id = $1 AND deleted_at IS NULL',
         [req.params.id as string]
       );
       if (existing.length === 0) {
         res.status(404).json({ error: 'Материал не найден' });
         return;
+      }
+
+      // Если указана категория — проверяем принадлежность к той же вкладке
+      if (categoryId !== undefined && categoryId !== null) {
+        const { rows: catRows } = await query(
+          'SELECT id FROM categories WHERE id = $1 AND tab_id = $2',
+          [categoryId, existing[0].tab_id]
+        );
+        if (catRows.length === 0) {
+          res.status(400).json({ error: 'Категория не принадлежит этой вкладке' });
+          return;
+        }
       }
 
       const fields: string[] = [];
@@ -303,6 +315,10 @@ router.put(
       }
       if (videoUrl !== undefined) { fields.push(`video_url = $${idx++}`); values.push(videoUrl || null); }
       if (sortOrder !== undefined) { fields.push(`sort_order = $${idx++}`); values.push(sortOrder); }
+      if (categoryId !== undefined) {
+        fields.push(`category_id = $${idx++}`);
+        values.push(categoryId === null ? null : categoryId);
+      }
 
       if (fields.length === 0) {
         res.status(400).json({ error: 'Нет полей для обновления' });

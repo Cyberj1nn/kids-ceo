@@ -169,6 +169,7 @@ export default function ContentPage() {
       <ContentEditor
         tabId={tabData.id}
         categoryId={activeCategory}
+        categories={categories}
         editItem={editorMode === 'edit' ? editItem : null}
         onSaved={handleSaved}
         onCancel={() => { setEditorMode(null); setEditItem(null); }}

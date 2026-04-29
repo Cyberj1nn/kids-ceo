@@ -8,6 +8,7 @@ import {
   type ContentDetail,
   type ContentBlock,
   type BlockType,
+  type Category,
 } from '../api/content';
 import './ContentEditor.css';
 
@@ -36,6 +37,7 @@ interface EditorBlock {
 interface ContentEditorProps {
   tabId: number;
   categoryId?: number | null;
+  categories?: Category[];
   editItem?: ContentDetail | null;
   onSaved: () => void;
   onCancel: () => void;
@@ -75,12 +77,16 @@ function initBlocks(editItem?: ContentDetail | null): EditorBlock[] {
 export default function ContentEditor({
   tabId,
   categoryId,
+  categories = [],
   editItem,
   onSaved,
   onCancel,
 }: ContentEditorProps) {
   const [title, setTitle] = useState(editItem?.title || '');
   const [blocks, setBlocks] = useState<EditorBlock[]>(() => initBlocks(editItem));
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    editItem?.categoryId ?? categoryId ?? null
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -191,13 +197,17 @@ export default function ContentEditor({
     setError('');
     try {
       if (isEdit) {
-        await updateContent(editItem.id, { title: title.trim(), blocks: contentBlocks });
+        await updateContent(editItem.id, {
+          title: title.trim(),
+          blocks: contentBlocks,
+          categoryId: selectedCategoryId,
+        });
       } else {
         await createContent({
           title: title.trim(),
           blocks: contentBlocks,
           tabId,
-          categoryId: categoryId || undefined,
+          categoryId: selectedCategoryId ?? undefined,
         });
       }
       onSaved();
@@ -207,6 +217,18 @@ export default function ContentEditor({
       setSaving(false);
     }
   };
+
+  const categoryOptions: { id: number; label: string }[] = [];
+  const parents = categories.filter((c) => c.parentId === null).sort((a, b) => a.sortOrder - b.sortOrder);
+  for (const parent of parents) {
+    categoryOptions.push({ id: parent.id, label: parent.name });
+    const children = categories
+      .filter((c) => c.parentId === parent.id)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+    for (const child of children) {
+      categoryOptions.push({ id: child.id, label: `    — ${child.name}` });
+    }
+  }
 
   return (
     <div className="content-editor">
@@ -230,6 +252,25 @@ export default function ContentEditor({
             autoFocus
           />
         </div>
+
+        {categoryOptions.length > 0 && (
+          <div className="content-editor-field">
+            <label>Категория</label>
+            <select
+              value={selectedCategoryId ?? ''}
+              onChange={(e) =>
+                setSelectedCategoryId(e.target.value === '' ? null : Number(e.target.value))
+              }
+            >
+              <option value="">— Без категории —</option>
+              {categoryOptions.map((opt) => (
+                <option key={opt.id} value={opt.id}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="block-list">
           {blocks.length === 0 && (
