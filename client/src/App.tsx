@@ -19,6 +19,8 @@ import CulinaryNavigatorPage from './pages/CulinaryNavigatorPage';
 import CulinaryNavigatorBreakfastPage from './pages/CulinaryNavigatorBreakfastPage';
 import CulinaryNavigatorLunchPage from './pages/CulinaryNavigatorLunchPage';
 import CulinaryNavigatorDinnerPage from './pages/CulinaryNavigatorDinnerPage';
+import MentorPlatformPage from './pages/MentorPlatformPage';
+import MentorPlatformPageAlt from './pages/MentorPlatformPageAlt';
 import NotFoundPage from './pages/NotFoundPage';
 
 // Вкладки с подкатегориями → ContentPage
@@ -43,6 +45,9 @@ export default function App() {
               <Route path="/Culinary_Navigator/breakfast" element={<CulinaryNavigatorBreakfastPage />} />
               <Route path="/Culinary_Navigator/lunch" element={<CulinaryNavigatorLunchPage />} />
               <Route path="/Culinary_Navigator/dinner" element={<CulinaryNavigatorDinnerPage />} />
+
+              <Route path="/mentor_platform" element={<MentorPlatformPage />} />
+              <Route path="/mentor_platform_alt" element={<MentorPlatformPageAlt />} />
 
               <Route
                 path="/"
