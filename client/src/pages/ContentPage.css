@@ -43,20 +43,38 @@
 }
 
 .content-page-subcategories {
-  margin-top: -16px;
+  margin-top: -8px;
   margin-bottom: 24px;
-  padding-left: 12px;
-  border-left: 2px solid #e5e7eb;
+  padding: 0 0 0 16px;
+  gap: 4px;
+  border-left: 3px solid #6c63ff;
+  border-radius: 0;
 }
 
 .category-chip--sub {
-  font-size: 12px;
-  padding: 6px 14px;
-  background: #f9fafb;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  color: #6b7280;
+  border-bottom: 2px solid transparent;
+  border-top: 2px solid transparent;
 }
 
-.category-chip--sub.category-chip--active {
-  background: #6c63ff;
+.category-chip--sub:hover {
+  background: transparent;
+  border-color: transparent;
+  color: #6c63ff;
+}
+
+.category-chip--sub.category-chip--active,
+.category-chip--sub.category-chip--active:hover {
+  background: transparent;
+  color: #6c63ff;
+  border-bottom-color: #6c63ff;
+  border-top-color: transparent;
 }
 
 .category-chip {
