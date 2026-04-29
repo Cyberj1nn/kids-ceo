@@ -67,14 +67,9 @@ export default function ContentPage() {
         const parents = cats.filter((c) => c.parentId === null);
         if (parents.length > 0) {
           const firstParent = parents[0];
-          const firstChildren = cats.filter((c) => c.parentId === firstParent.id);
-          if (firstChildren.length > 0) {
-            setActiveParent(firstParent.id);
-            setActiveCategory(firstChildren[0].id);
-          } else {
-            setActiveParent(null);
-            setActiveCategory(firstParent.id);
-          }
+          const hasChildren = cats.some((c) => c.parentId === firstParent.id);
+          setActiveParent(hasChildren ? firstParent.id : null);
+          setActiveCategory(firstParent.id);
         }
       })
       .catch(console.error)
@@ -87,14 +82,9 @@ export default function ContentPage() {
     : [];
 
   const selectParent = (parent: Category) => {
-    const children = categories.filter((c) => c.parentId === parent.id);
-    if (children.length > 0) {
-      setActiveParent(parent.id);
-      setActiveCategory(children[0].id);
-    } else {
-      setActiveParent(null);
-      setActiveCategory(parent.id);
-    }
+    const hasChildren = categories.some((c) => c.parentId === parent.id);
+    setActiveParent(hasChildren ? parent.id : null);
+    setActiveCategory(parent.id);
   };
 
   const reloadContent = useCallback(() => {
@@ -211,9 +201,9 @@ export default function ContentPage() {
       {parentCategories.length > 0 && (
         <div className="content-page-categories">
           {parentCategories.map((cat) => {
+            const activeCat = categories.find((c) => c.id === activeCategory);
             const isActive =
-              activeParent === cat.id ||
-              (activeParent === null && activeCategory === cat.id);
+              activeCategory === cat.id || activeCat?.parentId === cat.id;
             return (
               <button
                 key={cat.id}
