@@ -52,20 +52,19 @@
 }
 
 .category-chip--sub {
-  padding: 6px 12px;
+  padding: 4px 12px 6px;
   font-size: 13px;
   font-weight: 500;
   background: transparent;
-  border: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
   border-radius: 0;
   color: #6b7280;
-  border-bottom: 2px solid transparent;
-  border-top: 2px solid transparent;
+  line-height: 1.4;
 }
 
 .category-chip--sub:hover {
   background: transparent;
-  border-color: transparent;
   color: #6c63ff;
 }
 
@@ -74,7 +73,6 @@
   background: transparent;
   color: #6c63ff;
   border-bottom-color: #6c63ff;
-  border-top-color: transparent;
 }
 
 .category-chip {
