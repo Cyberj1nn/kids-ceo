@@ -168,7 +168,7 @@ const FEATURES_EXT = [
 ];
 
 const COMPARE_ROWS = [
-  { label: 'Стоимость на старте', getCourse: '5–30 тыс ₽/мес', tilda: '1–5 тыс ₽/мес', custom: 'от 300 тыс ₽', us: '15 000 ₽ разово' },
+  { label: 'Стоимость на старте', getCourse: '5–30 тыс ₽/мес', tilda: '15 000 ₽', custom: 'от 300 тыс ₽', us: '15 000 ₽ разово' },
   { label: 'Ежемесячная плата', getCourse: '5–30 тыс ₽', tilda: '1–5 тыс ₽', custom: 'хостинг + поддержка', us: '3 500 ₽/мес' },
   { label: 'Срок запуска', getCourse: '1–2 недели', tilda: '1 неделя', custom: '2–6 месяцев', us: '1–2 недели' },
   { label: 'Готовая база знаний', getCourse: 'Шаблон', tilda: 'Своими силами', custom: 'Любая', us: 'Готовые 11 разделов' },
@@ -280,6 +280,7 @@ function useReveal() {
 export default function MentorPlatformPageAlt() {
   const { scrolled, showSticky } = useScrollState();
   const rootRef = useReveal();
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
     <div className="mpa" ref={rootRef}>
@@ -338,24 +339,18 @@ export default function MentorPlatformPageAlt() {
               </ul>
             </div>
 
-            <div className="mpa-hero__visual mpa-reveal" aria-hidden="true">
+            <div className="mpa-hero__visual mpa-reveal">
               <div className="mpa-hero__device">
                 <div className="mpa-hero__device-bar">
                   <span /><span /><span />
                 </div>
-                <div className="mpa-hero__device-rows">
-                  <div className="mpa-hero__device-row mpa-hero__device-row--brand" />
-                  <div className="mpa-hero__device-row" />
-                  <div className="mpa-hero__device-row mpa-hero__device-row--short" />
-                </div>
-                <div className="mpa-hero__device-card">
-                  <div className="mpa-hero__device-row" />
-                  <div className="mpa-hero__device-row mpa-hero__device-row--short" />
-                </div>
-                <div className="mpa-hero__device-card">
-                  <div className="mpa-hero__device-row" />
-                  <div className="mpa-hero__device-row mpa-hero__device-row--short" />
-                </div>
+                <img
+                  className="mpa-hero__device-img"
+                  src="/mentor-platform/kids-ceo-screen.png"
+                  alt="Превью платформы Kids CEO"
+                  loading="eager"
+                  decoding="async"
+                />
               </div>
             </div>
           </div>
@@ -753,8 +748,18 @@ export default function MentorPlatformPageAlt() {
             </div>
             <div className="mpa-faq__list">
               {FAQ.map((item, i) => (
-                <details className="mpa-faq__item mpa-reveal" key={i}>
-                  <summary className="mpa-faq__q">
+                <details
+                  className="mpa-faq__item mpa-reveal"
+                  key={i}
+                  open={openFaq === i}
+                >
+                  <summary
+                    className="mpa-faq__q"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setOpenFaq(openFaq === i ? null : i);
+                    }}
+                  >
                     <span>{item.q}</span>
                     <span className="mpa-faq__q-ico" aria-hidden="true">{I.plus}</span>
                   </summary>
