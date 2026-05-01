@@ -63,11 +63,26 @@ const PRODUCTS: Record<ProductCode, ProductDef> = {
   },
 };
 
-// Robokassa возвращает shp_product=<code> в payload — определяем продукт по нему.
-// Если параметра нет (старые платежи english_lessons без shp_product) — fallback.
+// Определяем продукт в callback'е Robokassa.
+//
+// Идеально — по shp_product, который мы кладём в URL инвойса. НО: ad-hoc shp_-параметры,
+// добавленные в Invoice URL «снаружи» (без декларации в шаблоне инвойса в кабинете
+// Robokassa), могут не пробрасываться обратно в SuccessURL/ResultURL. Поэтому
+// используем дополнительный fallback по сумме платежа:
+//   english_lessons = 3 000 ₽
+//   market_materials = 2 000 ₽
+// Если меняются цены — пересмотреть пороги.
 function detectProduct(params: Record<string, string>): ProductDef {
   const raw = pickParam(params, 'shp_product', 'shp_Product', 'Shp_product', 'Shp_Product');
   if (raw === 'market_materials') return PRODUCTS.market_materials;
+  if (raw === 'english_lessons') return PRODUCTS.english_lessons;
+
+  const outSumStr = pickParam(params, 'OutSum', 'outSum');
+  const outSum = parseFloat(outSumStr);
+  if (Number.isFinite(outSum) && outSum > 0) {
+    if (outSum < 2500) return PRODUCTS.market_materials;
+    return PRODUCTS.english_lessons;
+  }
   return PRODUCTS.english_lessons;
 }
 
@@ -81,6 +96,10 @@ async function processSuccessfulPayment(opts: {
 }) {
   const { invId, outSum, params, source, product } = opts;
   let { email } = opts;
+
+  // Диагностика: какие реально параметры пришли от Robokassa.
+  // Особенно важно отлавливать наличие/отсутствие shp_product в /result.
+  console.log(`[payments/${source}] params=${JSON.stringify(params)} product=${product.code}`);
 
   // Если email не пришёл — попробуем подтянуть через Robokassa API
   if (!email) {
