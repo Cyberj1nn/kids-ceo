@@ -1,7 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { createHash } from 'crypto';
 import { config } from '../config';
-import { sendEnglishLessonsLink, sendAdminNotification } from '../services/mailer';
+import {
+  sendEnglishLessonsLink,
+  sendMarketMaterialsLink,
+  sendAdminNotification,
+} from '../services/mailer';
 import { fetchPaymentEmail } from '../services/robokassa';
 import { insertPayment, markEmailSent } from '../db/queries/payments';
 
@@ -38,14 +42,44 @@ function pickEmail(params: Record<string, string>): string | null {
   ) || null;
 }
 
+type ProductCode = 'english_lessons' | 'market_materials';
+
+interface ProductDef {
+  code: ProductCode;
+  label: string;
+  sendLink: (email: string) => Promise<void>;
+}
+
+const PRODUCTS: Record<ProductCode, ProductDef> = {
+  english_lessons: {
+    code: 'english_lessons',
+    label: 'English Lessons',
+    sendLink: sendEnglishLessonsLink,
+  },
+  market_materials: {
+    code: 'market_materials',
+    label: 'Маркетинговые материалы',
+    sendLink: sendMarketMaterialsLink,
+  },
+};
+
+// Robokassa возвращает shp_product=<code> в payload — определяем продукт по нему.
+// Если параметра нет (старые платежи english_lessons без shp_product) — fallback.
+function detectProduct(params: Record<string, string>): ProductDef {
+  const raw = pickParam(params, 'shp_product', 'shp_Product', 'Shp_product', 'Shp_Product');
+  if (raw === 'market_materials') return PRODUCTS.market_materials;
+  return PRODUCTS.english_lessons;
+}
+
 async function processSuccessfulPayment(opts: {
   invId: number;
   outSum: string;
   email: string | null;
   params: Record<string, string>;
-  source: 'success' | 'result';
+  source: string;
+  product: ProductDef;
 }) {
-  const { invId, outSum, params, source } = opts;
+  const { invId, outSum, params, source, product } = opts;
   let { email } = opts;
 
   // Если email не пришёл — попробуем подтянуть через Robokassa API
@@ -63,18 +97,24 @@ async function processSuccessfulPayment(opts: {
     outSum: outSum || '0',
     email,
     status: 'success',
+    productCode: product.code,
     rawParams: params,
   });
 
   // payment === null означает повторный вызов (запись уже есть) — письмо не дублируем
   if (payment && email) {
     try {
-      await sendEnglishLessonsLink(email);
+      await product.sendLink(email);
       await markEmailSent(invId);
     } catch (err) {
-      console.error(`[payments/${source}] sendEnglishLessonsLink error:`, err);
+      console.error(`[payments/${source}] sendLink error:`, err);
     }
-    sendAdminNotification({ invId, email, outSum: outSum || '0' }).catch((err) =>
+    sendAdminNotification({
+      invId,
+      email,
+      outSum: outSum || '0',
+      productLabel: product.label,
+    }).catch((err) =>
       console.error(`[payments/${source}] sendAdminNotification error:`, err)
     );
   } else if (payment && !email) {
@@ -99,9 +139,51 @@ router.all('/robokassa/success', async (req: Request, res: Response) => {
     : Date.now();
 
   try {
-    await processSuccessfulPayment({ invId, outSum, email, params, source: 'success' });
+    await processSuccessfulPayment({
+      invId,
+      outSum,
+      email,
+      params,
+      source: 'success',
+      product: PRODUCTS.english_lessons,
+    });
   } catch (err) {
     console.error('[payments/success] processing error:', err);
+    res.redirect(302, `${failUrl}?reason=db_error`);
+    return;
+  }
+
+  res.redirect(302, `${successUrl}?invId=${invId}`);
+});
+
+// SuccessURL2 для пакета «Маркетинговые материалы».
+// Прописан в виджете Robokassa этого инвойса. Логика идентична english_lessons,
+// но шлёт другое письмо и редиректит на /market_materials/success.
+router.all('/robokassa/market_success', async (req: Request, res: Response) => {
+  const params = collectParams(req);
+  const outSum = pickParam(params, 'OutSum', 'outSum');
+  const invIdStr = pickParam(params, 'InvId', 'invId');
+  const email = pickEmail(params);
+
+  const successUrl = `${config.clientUrl}/market_materials/success`;
+  const failUrl = `${config.clientUrl}/market_materials/fail`;
+
+  const parsedInvId = Number(invIdStr);
+  const invId = Number.isFinite(parsedInvId) && parsedInvId > 0
+    ? parsedInvId
+    : Date.now();
+
+  try {
+    await processSuccessfulPayment({
+      invId,
+      outSum,
+      email,
+      params,
+      source: 'market_success',
+      product: PRODUCTS.market_materials,
+    });
+  } catch (err) {
+    console.error('[payments/market_success] processing error:', err);
     res.redirect(302, `${failUrl}?reason=db_error`);
     return;
   }
@@ -209,6 +291,9 @@ router.all('/robokassa/result', async (req: Request, res: Response) => {
       email: pickEmail(params),
       params,
       source: 'result',
+      // ResultURL — общий для всех инвойсов магазина. Продукт определяем
+      // по shp_product (английский без параметра — fallback на english_lessons).
+      product: detectProduct(params),
     });
   } catch (err) {
     console.error('[payments/result] processing error:', err);
@@ -238,6 +323,31 @@ router.all('/robokassa/fail', async (req: Request, res: Response) => {
       });
     } catch (err) {
       console.error('[payments/fail] insertPayment error:', err);
+    }
+  }
+
+  res.redirect(302, failUrl);
+});
+
+// FailURL2 для пакета «Маркетинговые материалы».
+router.all('/robokassa/market_fail', async (req: Request, res: Response) => {
+  const params = collectParams(req);
+  const invIdStr = pickParam(params, 'InvId', 'invId');
+  const parsedInvId = Number(invIdStr);
+  const failUrl = `${config.clientUrl}/market_materials/fail`;
+
+  if (Number.isFinite(parsedInvId) && parsedInvId > 0) {
+    try {
+      await insertPayment({
+        invId: parsedInvId,
+        outSum: pickParam(params, 'OutSum', 'outSum') || '0',
+        email: pickParam(params, 'Email', 'email', 'EMail') || null,
+        status: 'failed',
+        productCode: 'market_materials',
+        rawParams: params,
+      });
+    } catch (err) {
+      console.error('[payments/market_fail] insertPayment error:', err);
     }
   }
 

@@ -15,6 +15,9 @@ import AdminPage from './pages/AdminPage';
 import EnglishLessonsPage from './pages/EnglishLessonsPage';
 import EnglishLessonsSuccessPage from './pages/EnglishLessonsSuccessPage';
 import EnglishLessonsFailPage from './pages/EnglishLessonsFailPage';
+import MarketMaterialsPage from './pages/MarketMaterialsPage';
+import MarketMaterialsSuccessPage from './pages/MarketMaterialsSuccessPage';
+import MarketMaterialsFailPage from './pages/MarketMaterialsFailPage';
 import CulinaryNavigatorPage from './pages/CulinaryNavigatorPage';
 import CulinaryNavigatorBreakfastPage from './pages/CulinaryNavigatorBreakfastPage';
 import CulinaryNavigatorLunchPage from './pages/CulinaryNavigatorLunchPage';
@@ -40,6 +43,10 @@ export default function App() {
               <Route path="/english_lessons" element={<EnglishLessonsPage />} />
               <Route path="/english_lessons/success" element={<EnglishLessonsSuccessPage />} />
               <Route path="/english_lessons/fail" element={<EnglishLessonsFailPage />} />
+
+              <Route path="/market_materials" element={<MarketMaterialsPage />} />
+              <Route path="/market_materials/success" element={<MarketMaterialsSuccessPage />} />
+              <Route path="/market_materials/fail" element={<MarketMaterialsFailPage />} />
 
               <Route path="/Culinary_Navigator" element={<CulinaryNavigatorPage />} />
               <Route path="/Culinary_Navigator/breakfast" element={<CulinaryNavigatorBreakfastPage />} />

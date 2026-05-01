@@ -46,5 +46,11 @@ export const config = {
       'https://drive.google.com/drive/folders/1_guTloxL7jrMS-Oxl_ftQg4we-ShEAQS?usp=sharing',
   },
 
+  marketMaterials: {
+    telegramUrl:
+      process.env.MARKET_MATERIALS_TELEGRAM_URL ||
+      'https://t.me/+zzfhgGdAgFFlMTIy',
+  },
+
   adminNotifyEmail: process.env.ADMIN_NOTIFY_EMAIL || '',
 };
