@@ -1,5 +1,7 @@
 import api from './axios';
 
+export type AudienceType = 'all' | 'users' | 'groups';
+
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -8,6 +10,10 @@ export interface CalendarEvent {
   startAt: string;
   createdBy: string;
   createdAt: string;
+  audienceType: AudienceType;
+  // приходят только в админской выдаче (для редактирования)
+  audienceUserIds?: string[];
+  audienceGroupIds?: string[];
 }
 
 export interface CalendarEventInput {
@@ -15,6 +21,9 @@ export interface CalendarEventInput {
   description?: string | null;
   link?: string | null;
   startAt: string; // ISO
+  audienceType: AudienceType;
+  audienceUserIds?: string[];
+  audienceGroupIds?: string[];
 }
 
 export async function getEvents(params?: { from?: string; to?: string }): Promise<CalendarEvent[]> {

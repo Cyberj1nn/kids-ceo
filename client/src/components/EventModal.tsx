@@ -1,5 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { CalendarEvent } from '../api/calendar';
+import { getGroups, type UserGroup } from '../api/groups';
+import { getUsers, type UserItem } from '../api/admin';
 import './EventModal.css';
 
 interface Props {
@@ -22,6 +24,8 @@ function formatFullDate(iso: string): string {
 }
 
 export default function EventModal({ event, isAdmin, onClose, onEdit, onDelete }: Props) {
+  const [audienceLabel, setAudienceLabel] = useState<string | null>(null);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -33,6 +37,50 @@ export default function EventModal({ event, isAdmin, onClose, onEdit, onDelete }
       document.body.style.overflow = '';
     };
   }, [onClose]);
+
+  // Подгружаем имена групп/пользователей для отображения у админа
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const aType = event.audienceType;
+    if (aType === 'all') {
+      setAudienceLabel('Все пользователи');
+      return;
+    }
+
+    if (aType === 'users') {
+      const ids = event.audienceUserIds || [];
+      if (ids.length === 0) {
+        setAudienceLabel('Никто (пусто)');
+        return;
+      }
+      getUsers()
+        .then((users: UserItem[]) => {
+          const names = users
+            .filter((u) => ids.includes(u.id))
+            .map((u) => `${u.firstName} ${u.lastName}`);
+          setAudienceLabel(names.length > 0 ? names.join(', ') : `${ids.length} пользователь(ей)`);
+        })
+        .catch(() => setAudienceLabel(`${ids.length} пользователь(ей)`));
+      return;
+    }
+
+    if (aType === 'groups') {
+      const ids = event.audienceGroupIds || [];
+      if (ids.length === 0) {
+        setAudienceLabel('Никто (пусто)');
+        return;
+      }
+      getGroups()
+        .then((groups: UserGroup[]) => {
+          const names = groups
+            .filter((g) => ids.includes(g.id))
+            .map((g) => g.name);
+          setAudienceLabel(names.length > 0 ? `Группы: ${names.join(', ')}` : `${ids.length} групп(ы)`);
+        })
+        .catch(() => setAudienceLabel(`${ids.length} групп(ы)`));
+    }
+  }, [isAdmin, event.audienceType, event.audienceUserIds, event.audienceGroupIds]);
 
   const handleOpenLink = () => {
     if (event.link) {
@@ -57,6 +105,13 @@ export default function EventModal({ event, isAdmin, onClose, onEdit, onDelete }
             <button className="event-modal-link-btn" onClick={handleOpenLink}>
               Перейти по ссылке
             </button>
+          </div>
+        )}
+
+        {isAdmin && audienceLabel && (
+          <div className="event-modal-audience">
+            <span className="event-modal-audience-label">Видно:</span>
+            <span className="event-modal-audience-value">{audienceLabel}</span>
           </div>
         )}
 

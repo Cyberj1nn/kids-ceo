@@ -17,6 +17,7 @@ import callTrackerRouter from './routes/callTracker';
 import paymentsRouter from './routes/payments';
 import calendarRouter from './routes/calendar';
 import notificationsRouter from './routes/notifications';
+import groupsRouter from './routes/groups';
 import { initSocket } from './socket';
 import { startScheduler } from './services/scheduler';
 
@@ -99,6 +100,7 @@ app.use('/api/notifications', notificationsRouter);
 // и GET '/count', а /unread-count из chatRouter не пересекается с ними.
 app.use('/api/notifications', chatRouter);
 app.use('/api/calendar', calendarRouter);
+app.use('/api/groups', groupsRouter);
 app.use('/api/dtp', dtpRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/call-tracker', callTrackerRouter);

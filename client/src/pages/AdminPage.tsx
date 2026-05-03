@@ -5,6 +5,14 @@ import {
   getUserTabs, setUserTabs,
   type UserItem, type TabAccess,
 } from '../api/admin';
+import {
+  getGroups,
+  getUserGroups,
+  setUserGroups,
+  type UserGroup,
+  type UserGroupMembership,
+} from '../api/groups';
+import GroupsAdmin from '../components/GroupsAdmin';
 import './AdminPage.css';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -14,13 +22,15 @@ const ROLE_LABELS: Record<string, string> = {
   user: 'Пользователь',
 };
 
+type View = 'users' | 'access' | 'groups';
+
 export default function AdminPage() {
   const { user } = useAuth();
   const isSuperadmin = user?.role === 'superadmin';
 
   const [users, setUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'users' | 'access'>('users');
+  const [view, setView] = useState<View>('users');
 
   // User form state
   const [formOpen, setFormOpen] = useState(false);
@@ -32,6 +42,10 @@ export default function AdminPage() {
   const [role, setRole] = useState('user');
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Группы пользователя в форме
+  const [allGroups, setAllGroups] = useState<UserGroup[]>([]);
+  const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(new Set());
 
   // Reset password
   const [generatedPassword, setGeneratedPassword] = useState<{ userId: string; password: string } | null>(null);
@@ -48,7 +62,7 @@ export default function AdminPage() {
   useEffect(() => { loadUsers(); }, [loadUsers]);
 
   // ========== User Form ==========
-  const openCreate = () => {
+  const openCreate = async () => {
     setEditingUser(null);
     setFirstName('');
     setLastName('');
@@ -56,10 +70,17 @@ export default function AdminPage() {
     setPassword('');
     setRole('user');
     setFormError('');
+    setSelectedGroupIds(new Set());
     setFormOpen(true);
+    try {
+      const groups = await getGroups();
+      setAllGroups(groups);
+    } catch {
+      setAllGroups([]);
+    }
   };
 
-  const openEdit = (u: UserItem) => {
+  const openEdit = async (u: UserItem) => {
     setEditingUser(u);
     setFirstName(u.firstName);
     setLastName(u.lastName);
@@ -68,6 +89,25 @@ export default function AdminPage() {
     setRole(u.role);
     setFormError('');
     setFormOpen(true);
+    try {
+      const memberships: UserGroupMembership[] = await getUserGroups(u.id);
+      setAllGroups(memberships.map((m) => ({
+        id: m.id, name: m.name, createdAt: '', updatedAt: '',
+      })));
+      setSelectedGroupIds(new Set(memberships.filter((m) => m.isMember).map((m) => m.id)));
+    } catch {
+      setAllGroups([]);
+      setSelectedGroupIds(new Set());
+    }
+  };
+
+  const toggleGroup = (groupId: string) => {
+    setSelectedGroupIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,12 +116,21 @@ export default function AdminPage() {
     setSaving(true);
 
     try {
+      let userId: string;
       if (editingUser) {
         await updateUser(editingUser.id, { firstName, lastName, login, role });
+        userId = editingUser.id;
       } else {
         if (!password) { setFormError('Пароль обязателен'); setSaving(false); return; }
-        await createUser({ firstName, lastName, login, password, role });
+        const created = await createUser({ firstName, lastName, login, password, role });
+        userId = created.id;
       }
+
+      // Сохранить группы (для всех пользователей, у кого есть доступные группы)
+      if (allGroups.length > 0) {
+        await setUserGroups(userId, Array.from(selectedGroupIds));
+      }
+
       setFormOpen(false);
       loadUsers();
     } catch (err: any) {
@@ -159,6 +208,12 @@ export default function AdminPage() {
             Пользователи
           </button>
           <button
+            className={`admin-tab ${view === 'groups' ? 'admin-tab--active' : ''}`}
+            onClick={() => setView('groups')}
+          >
+            Группы
+          </button>
+          <button
             className={`admin-tab ${view === 'access' ? 'admin-tab--active' : ''}`}
             onClick={() => setView('access')}
           >
@@ -217,6 +272,25 @@ export default function AdminPage() {
                       {isSuperadmin && <option value="mentor">Наставник</option>}
                     </select>
                   </div>
+
+                  {allGroups.length > 0 && (
+                    <div className="admin-form-field">
+                      <label>Группы</label>
+                      <div className="admin-form-groups">
+                        {allGroups.map((g) => (
+                          <label key={g.id} className="admin-form-group-chip">
+                            <input
+                              type="checkbox"
+                              checked={selectedGroupIds.has(g.id)}
+                              onChange={() => toggleGroup(g.id)}
+                            />
+                            <span>{g.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="admin-form-actions">
                     <button type="button" className="admin-btn-secondary" onClick={() => setFormOpen(false)}>Отмена</button>
                     <button type="submit" className="admin-btn-primary" disabled={saving}>
@@ -265,6 +339,9 @@ export default function AdminPage() {
           )}
         </>
       )}
+
+      {/* ========== GROUPS TAB ========== */}
+      {view === 'groups' && <GroupsAdmin />}
 
       {/* ========== ACCESS TAB ========== */}
       {view === 'access' && (

@@ -155,11 +155,130 @@
   cursor: not-allowed;
 }
 
+/* Audience selector */
+.event-editor-audience-tabs {
+  display: flex;
+  gap: 4px;
+  background: #f3f4f6;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 8px;
+}
+
+.event-editor-audience-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 6px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.event-editor-audience-tab input[type="radio"] {
+  display: none;
+}
+
+.event-editor-audience-tab--active {
+  background: #fff;
+  color: #1a1a2e;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.event-editor-audience-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.event-editor-audience-search {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.event-editor-audience-search:focus {
+  outline: none;
+  border-color: #6c63ff;
+}
+
+.event-editor-audience-list {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+  max-height: 220px;
+  min-height: 120px;
+  overflow-y: auto;
+}
+
+.event-editor-audience-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.event-editor-audience-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #fff;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.event-editor-audience-item:last-child {
+  border-bottom: none;
+}
+
+.event-editor-audience-item:hover {
+  background: #f3f4f6;
+}
+
+.event-editor-audience-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #6c63ff;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.event-editor-audience-item-name {
+  flex: 1;
+  color: #1a1a2e;
+  font-weight: 500;
+}
+
+.event-editor-audience-item-meta {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.event-editor-audience-counter {
+  font-size: 12px;
+  color: #6b7280;
+  padding-left: 4px;
+}
+
 @media (max-width: 480px) {
   .event-editor {
     padding: 22px 18px;
   }
   .event-editor-title {
     font-size: 18px;
+  }
+  .event-editor-audience-tab {
+    font-size: 11px;
+    padding: 8px 4px;
   }
 }

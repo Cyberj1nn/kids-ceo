@@ -100,6 +100,29 @@
   background: #5a52e0;
 }
 
+.event-modal-audience {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+  padding: 10px 12px;
+  background: #f5f3ff;
+  border-radius: 8px;
+  margin-top: 8px;
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.event-modal-audience-label {
+  font-weight: 600;
+  color: #4338ca;
+  flex-shrink: 0;
+}
+
+.event-modal-audience-value {
+  color: #4b5563;
+}
+
 .event-modal-admin-actions {
   display: flex;
   gap: 8px;

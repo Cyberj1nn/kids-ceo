@@ -221,6 +221,79 @@ router.get('/:id/tabs', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Resp
   }
 });
 
+// ========================
+// Группы пользователя
+// ========================
+
+// GET /api/users/:id/groups — список всех активных групп с признаком членства
+router.get('/:id/groups', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.params.id as string;
+
+    const { rows } = await query(
+      `SELECT g.id, g.name,
+              EXISTS(
+                SELECT 1 FROM user_group_members m
+                WHERE m.group_id = g.id AND m.user_id = $1
+              ) AS "isMember"
+       FROM user_groups g
+       WHERE g.deleted_at IS NULL
+       ORDER BY g.name`,
+      [userId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error('User groups error:', err);
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+  }
+});
+
+// PUT /api/users/:id/groups — заменить набор групп пользователя (массив groupIds)
+router.put('/:id/groups', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.params.id as string;
+    const { groupIds } = req.body;
+    const addedBy = req.user!.userId;
+
+    if (!Array.isArray(groupIds)) {
+      res.status(400).json({ error: 'groupIds должен быть массивом' });
+      return;
+    }
+
+    // Убедимся, что пользователь существует
+    const { rows: userRows } = await query(
+      `SELECT id FROM users WHERE id = $1 AND deleted_at IS NULL`,
+      [userId]
+    );
+    if (userRows.length === 0) {
+      res.status(404).json({ error: 'Пользователь не найден' });
+      return;
+    }
+
+    await query('BEGIN');
+    try {
+      await query(`DELETE FROM user_group_members WHERE user_id = $1`, [userId]);
+      for (const gid of groupIds) {
+        await query(
+          `INSERT INTO user_group_members (group_id, user_id, added_by)
+           VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
+          [gid, userId, addedBy]
+        );
+      }
+      await query('COMMIT');
+    } catch (err) {
+      await query('ROLLBACK');
+      throw err;
+    }
+
+    res.json({ message: 'Группы обновлены', count: groupIds.length });
+  } catch (err) {
+    console.error('User set groups error:', err);
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+  }
+});
+
 // PUT /api/users/:id/tabs — установить доступ к вкладкам
 router.put('/:id/tabs', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Response) => {
   try {

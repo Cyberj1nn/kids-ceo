@@ -1,0 +1,148 @@
+.groups-admin-toolbar {
+  margin-bottom: 16px;
+}
+
+.groups-admin-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: #9ca3af;
+  background: #fff;
+  border: 2px dashed #e5e7eb;
+  border-radius: 12px;
+}
+
+.groups-admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.groups-admin-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.groups-admin-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.groups-admin-card-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.groups-admin-card-meta {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.groups-admin-card-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.admin-btn-small--danger {
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+.admin-btn-small--danger:hover {
+  background: #fef2f2;
+}
+
+.groups-admin-members-modal {
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 32px);
+}
+
+.groups-admin-search {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.groups-admin-search:focus {
+  outline: none;
+  border-color: #6c63ff;
+}
+
+.groups-admin-members-list {
+  flex: 1;
+  min-height: 240px;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+  margin-bottom: 16px;
+}
+
+.groups-admin-member-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #fff;
+  cursor: pointer;
+  font-size: 14px;
+  background: #fff;
+}
+
+.groups-admin-member-item:last-child {
+  border-bottom: none;
+}
+
+.groups-admin-member-item:hover {
+  background: #f3f4f6;
+}
+
+.groups-admin-member-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #6c63ff;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.groups-admin-member-name {
+  flex: 1;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.groups-admin-member-login {
+  font-size: 12px;
+  color: #6b7280;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+@media (max-width: 768px) {
+  .groups-admin-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .groups-admin-card-actions {
+    width: 100%;
+  }
+
+  .groups-admin-card-actions button {
+    flex: 1;
+  }
+}
