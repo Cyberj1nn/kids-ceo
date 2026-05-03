@@ -385,6 +385,30 @@
   color: #4338ca;
 }
 
+/* Чипы групп в таблице пользователей */
+.admin-group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 280px;
+}
+
+.admin-group-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #eef2ff;
+  color: #4338ca;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.admin-group-empty {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
 @media (max-width: 768px) {
   .admin-header {
     flex-direction: column;

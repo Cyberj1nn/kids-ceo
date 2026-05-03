@@ -59,7 +59,11 @@ export default function AdminPage() {
     getUsers().then(setUsers).catch(console.error).finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { loadUsers(); }, [loadUsers]);
+  // Перезагружаем пользователей каждый раз при открытии вкладки "users",
+  // чтобы изменения членства в группах подтягивались сразу.
+  useEffect(() => {
+    if (view === 'users') loadUsers();
+  }, [view, loadUsers]);
 
   // ========== User Form ==========
   const openCreate = async () => {
@@ -314,6 +318,7 @@ export default function AdminPage() {
                     <th>Фамилия</th>
                     <th>Логин</th>
                     <th>Роль</th>
+                    <th>Группы</th>
                     <th>Действия</th>
                   </tr>
                 </thead>
@@ -324,6 +329,17 @@ export default function AdminPage() {
                       <td>{u.lastName}</td>
                       <td><code>{u.login}</code></td>
                       <td><span className={`admin-role-badge admin-role-badge--${u.role}`}>{ROLE_LABELS[u.role]}</span></td>
+                      <td>
+                        {u.groups && u.groups.length > 0 ? (
+                          <div className="admin-group-chips">
+                            {u.groups.map((g) => (
+                              <span key={g.id} className="admin-group-chip">{g.name}</span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="admin-group-empty">—</span>
+                        )}
+                      </td>
                       <td className="admin-actions-cell">
                         <button className="admin-action" onClick={() => openEdit(u)} title="Редактировать">✎</button>
                         <button className="admin-action" onClick={() => handleResetPassword(u.id)} title="Сбросить пароль">🔑</button>

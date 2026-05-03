@@ -14,10 +14,24 @@ const ADMIN_ROLES = roleCheck(['superadmin', 'admin', 'mentor']);
 router.get('/', authJWT, ADMIN_ROLES, async (_req: AuthRequest, res: Response) => {
   try {
     const { rows } = await query(
-      `SELECT id, first_name AS "firstName", last_name AS "lastName", login, role,
-              created_at AS "createdAt"
-       FROM users WHERE deleted_at IS NULL
-       ORDER BY last_name, first_name`
+      `SELECT u.id,
+              u.first_name AS "firstName",
+              u.last_name AS "lastName",
+              u.login,
+              u.role,
+              u.created_at AS "createdAt",
+              COALESCE(
+                (
+                  SELECT json_agg(json_build_object('id', g.id, 'name', g.name) ORDER BY g.name)
+                  FROM user_group_members m
+                  JOIN user_groups g ON g.id = m.group_id AND g.deleted_at IS NULL
+                  WHERE m.user_id = u.id
+                ),
+                '[]'::json
+              ) AS groups
+       FROM users u
+       WHERE u.deleted_at IS NULL
+       ORDER BY u.last_name, u.first_name`
     );
     res.json(rows);
   } catch (err) {

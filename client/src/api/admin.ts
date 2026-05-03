@@ -1,5 +1,10 @@
 import api from './axios';
 
+export interface UserGroupRef {
+  id: string;
+  name: string;
+}
+
 export interface UserItem {
   id: string;
   firstName: string;
@@ -7,6 +12,7 @@ export interface UserItem {
   login: string;
   role: string;
   createdAt: string;
+  groups?: UserGroupRef[];
 }
 
 export interface TabAccess {
