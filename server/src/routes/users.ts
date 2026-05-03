@@ -58,8 +58,8 @@ router.post('/', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Response) =
       return;
     }
 
-    // Проверка уникальности логина
-    const { rows: existing } = await query('SELECT id FROM users WHERE login = $1', [login]);
+    // Проверка уникальности логина (case-insensitive)
+    const { rows: existing } = await query('SELECT id FROM users WHERE LOWER(login) = LOWER($1)', [login.trim()]);
     if (existing.length > 0) {
       res.status(400).json({ error: 'Пользователь с таким логином уже существует' });
       return;
@@ -107,11 +107,11 @@ router.put('/:id', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Response)
       return;
     }
 
-    // Проверка уникальности логина
+    // Проверка уникальности логина (case-insensitive)
     if (login) {
       const { rows: dup } = await query(
-        'SELECT id FROM users WHERE login = $1 AND id != $2',
-        [login, userId]
+        'SELECT id FROM users WHERE LOWER(login) = LOWER($1) AND id != $2',
+        [login.trim(), userId]
       );
       if (dup.length > 0) {
         res.status(400).json({ error: 'Логин уже занят' });

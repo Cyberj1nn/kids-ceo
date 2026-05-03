@@ -30,7 +30,8 @@
 @media (max-width: 768px) {
   .layout-main {
     margin-left: 0;
-    padding-top: 64px;
+    /* Высота фиксированной шапки + системная шторка (status bar) в PWA */
+    padding-top: calc(64px + env(safe-area-inset-top, 0px));
   }
 
   .layout-content {

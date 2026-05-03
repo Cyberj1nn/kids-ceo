@@ -44,9 +44,10 @@ router.post('/login', async (req: AuthRequest, res: Response) => {
       return;
     }
 
+    // Логин — case-insensitive: "Superadmin" и "superadmin" должны находить одну запись
     const { rows } = await query(
-      'SELECT id, first_name, last_name, login, password_hash, role FROM users WHERE login = $1 AND deleted_at IS NULL',
-      [login]
+      'SELECT id, first_name, last_name, login, password_hash, role FROM users WHERE LOWER(login) = LOWER($1) AND deleted_at IS NULL',
+      [login.trim()]
     );
 
     if (rows.length === 0) {

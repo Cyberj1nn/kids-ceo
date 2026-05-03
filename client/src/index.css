@@ -24,8 +24,9 @@ body {
   line-height: 1.5;
   overflow-x: clip;
   overscroll-behavior: none;
-  /* PWA safe areas */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  /* PWA safe areas: top — на header'е (fixed), bottom/sides — здесь.
+     Top убран отсюда, чтобы fixed-header сам учитывал env(safe-area-inset-top). */
+  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 /* Scrollbar styling */
