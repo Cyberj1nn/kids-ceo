@@ -5,6 +5,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import PrivateRoute from './components/PrivateRoute';
 import MainLayout from './components/MainLayout';
 import LoginPage from './pages/LoginPage';
+import CalendarPage from './pages/CalendarPage';
 import ContentPage from './pages/ContentPage';
 import SimplePage from './pages/SimplePage';
 import GeneralChatPage from './pages/GeneralChatPage';
@@ -64,7 +65,8 @@ export default function App() {
                   </PrivateRoute>
                 }
               >
-                <Route index element={<Navigate to="/beseda" replace />} />
+                <Route index element={<Navigate to="/calendar" replace />} />
+                <Route path="calendar" element={<CalendarPage />} />
                 <Route path="beseda" element={<GeneralChatPage />} />
                 <Route path="personal-chat" element={<PersonalChatPage />} />
                 <Route path="dtp" element={<DtpPage />} />

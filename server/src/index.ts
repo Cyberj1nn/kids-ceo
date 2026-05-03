@@ -15,7 +15,10 @@ import dtpRouter from './routes/dtp';
 import usersRouter from './routes/users';
 import callTrackerRouter from './routes/callTracker';
 import paymentsRouter from './routes/payments';
+import calendarRouter from './routes/calendar';
+import notificationsRouter from './routes/notifications';
 import { initSocket } from './socket';
+import { startScheduler } from './services/scheduler';
 
 const app = express();
 const httpServer = createServer(app);
@@ -90,7 +93,12 @@ app.use('/api/tabs', tabsRouter);
 app.use('/api', contentRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/chat', chatRouter);
+app.use('/api/notifications', notificationsRouter);
+// Старый эндпоинт /api/notifications/unread-count остался в chatRouter ради обратной совместимости.
+// Новые роуты (list, count, read, read-all) обрабатываются notificationsRouter выше — у него есть GET '/'
+// и GET '/count', а /unread-count из chatRouter не пересекается с ними.
 app.use('/api/notifications', chatRouter);
+app.use('/api/calendar', calendarRouter);
 app.use('/api/dtp', dtpRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/call-tracker', callTrackerRouter);
@@ -112,6 +120,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 httpServer.listen(config.port, () => {
   console.log(`Server running on http://localhost:${config.port}`);
   console.log(`Environment: ${config.nodeEnv}`);
+  startScheduler();
 });
 
 export { app, httpServer };

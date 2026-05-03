@@ -1,0 +1,138 @@
+.pwa-install-btn {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #6c63ff;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  min-height: 44px;
+}
+
+.pwa-install-btn:hover {
+  background: #5a52e0;
+}
+
+.pwa-install-btn-icon {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Показываем кнопку только на мобильных */
+@media (max-width: 768px) {
+  .pwa-install-btn {
+    display: inline-flex;
+    padding: 8px 10px;
+  }
+
+  .pwa-install-btn-label {
+    display: none;
+  }
+}
+
+/* iOS hint модалка */
+.pwa-ios-hint-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  z-index: 1100;
+  animation: pwa-hint-fade 0.2s ease;
+}
+
+@keyframes pwa-hint-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.pwa-ios-hint {
+  background: #fff;
+  border-radius: 18px 18px 0 0;
+  width: 100%;
+  max-width: 520px;
+  padding: 28px 24px 32px;
+  position: relative;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.2);
+  animation: pwa-hint-slide 0.25s ease;
+}
+
+@keyframes pwa-hint-slide {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.pwa-ios-hint-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  font-size: 18px;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pwa-ios-hint h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 16px 0;
+  padding-right: 32px;
+}
+
+.pwa-ios-hint ol {
+  margin: 0 0 16px 0;
+  padding-left: 22px;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.pwa-ios-hint ol li {
+  margin-bottom: 8px;
+}
+
+.pwa-ios-hint-note {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+}
+
+.pwa-ios-hint-dismiss {
+  width: 100%;
+  padding: 12px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 10px;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pwa-ios-hint-dismiss:hover {
+  background: #e5e7eb;
+}
+
+/* Скрываем кнопку, когда уже в standalone */
+@media (display-mode: standalone) {
+  .pwa-install-btn {
+    display: none !important;
+  }
+}

@@ -24,6 +24,32 @@ export default function ChatWindow({ roomId }: ChatWindowProps) {
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shouldScrollRef = useRef(true);
 
+  // Сообщаем серверу, что этот чат сейчас активен у пользователя.
+  // Сервер на основании этого решает, создавать ли persistent-notification при новом сообщении.
+  useEffect(() => {
+    if (!socket) return;
+    const setActive = () => socket.emit('chat:active', { roomId });
+    setActive();
+
+    const onFocus = () => setActive();
+    const onBlur = () => socket.emit('chat:active', { roomId: null });
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') setActive();
+      else socket.emit('chat:active', { roomId: null });
+    };
+
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('blur', onBlur);
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      socket.emit('chat:active', { roomId: null });
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('blur', onBlur);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [socket, roomId]);
+
   // Загрузка начальных сообщений
   useEffect(() => {
     setLoading(true);

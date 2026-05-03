@@ -6,6 +6,7 @@ async function seed() {
   // 1. Seed вкладок (11 штук)
   // =====================
   const tabs = [
+    { slug: 'calendar', name: 'Календарь', sort_order: 0 },
     { slug: 'beseda', name: 'Беседа', sort_order: 1 },
     { slug: 'lectures', name: 'Лекции', sort_order: 2 },
     { slug: 'instructions', name: 'Инструкции', sort_order: 3 },
@@ -22,11 +23,11 @@ async function seed() {
   for (const tab of tabs) {
     await pool.query(
       `INSERT INTO tabs (slug, name, sort_order) VALUES ($1, $2, $3)
-       ON CONFLICT (slug) DO NOTHING`,
+       ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, sort_order = EXCLUDED.sort_order`,
       [tab.slug, tab.name, tab.sort_order]
     );
   }
-  console.log('  Tabs seeded (11)');
+  console.log(`  Tabs seeded (${tabs.length})`);
 
   // =====================
   // 2. Seed подкатегорий

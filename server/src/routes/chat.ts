@@ -2,7 +2,13 @@ import { Router, Response } from 'express';
 import { query } from '../db/pool';
 import { authJWT } from '../middleware/auth';
 import { AuthRequest } from '../types';
-import { broadcastMessage, broadcastRoomRead, notifyUnread } from '../socket';
+import {
+  broadcastMessage,
+  broadcastRoomRead,
+  notifyUnread,
+  isUserActiveInRoom,
+  pushNotificationToUser,
+} from '../socket';
 
 const router = Router();
 
@@ -195,12 +201,44 @@ router.post('/rooms/:id/messages', authJWT, async (req: AuthRequest, res: Respon
     // Broadcast через WebSocket
     broadcastMessage(roomId, message);
 
+    // Тип комнаты — для решения, создавать ли persistent-уведомление
+    const { rows: roomRows } = await query(
+      `SELECT type, name FROM chat_rooms WHERE id = $1`,
+      [roomId]
+    );
+    const roomType: string | undefined = roomRows[0]?.type;
+    const roomName: string | undefined = roomRows[0]?.name;
+
     // Обновить badge непрочитанных для всех участников комнаты (кроме отправителя)
     const { rows: members } = await query(
       'SELECT user_id FROM chat_room_members WHERE chat_room_id = $1 AND user_id != $2',
       [roomId, userId]
     );
     for (const member of members) {
+      // Личные сообщения — создаём notification, если пользователь не открыт в этом чате прямо сейчас
+      if (roomType === 'personal') {
+        const isActive = await isUserActiveInRoom(member.user_id, roomId);
+        if (!isActive) {
+          const senderName = userRows[0].senderName as string;
+          const preview = text.trim().length > 120 ? text.trim().slice(0, 120) + '…' : text.trim();
+          const { rows: notifRows } = await query(
+            `INSERT INTO notifications (user_id, kind, title, body, link, payload)
+             VALUES ($1, 'personal_message', $2, $3, $4, $5)
+             RETURNING id, kind, title, body, link, payload,
+                       read_at AS "readAt",
+                       created_at AS "createdAt"`,
+            [
+              member.user_id,
+              senderName,
+              preview,
+              '/personal-chat',
+              JSON.stringify({ roomId, roomName, messageId: message.id }),
+            ]
+          );
+          await pushNotificationToUser(member.user_id, notifRows[0]);
+          continue;
+        }
+      }
       notifyUnread(member.user_id);
     }
 

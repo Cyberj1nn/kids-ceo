@@ -1,5 +1,6 @@
 import { useAuth } from '../context/AuthContext';
 import NotificationBell from './NotificationBell';
+import PwaInstallButton from './PwaInstallButton';
 import './Header.css';
 
 interface HeaderProps {
@@ -18,6 +19,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
       <div className="header-spacer" />
 
       <div className="header-right">
+        <PwaInstallButton />
         <NotificationBell />
 
         <div className="header-user">

@@ -19,14 +19,15 @@ router.get('/', authJWT, async (req: AuthRequest, res: Response) => {
       );
       rows = result.rows;
     } else {
-      // Обычные пользователи — только открытые
+      // Обычные пользователи — публичные вкладки + те, к которым явно открыт доступ
+      const PUBLIC_TAB_SLUGS = ['calendar'];
       const result = await query(
-        `SELECT t.id, t.slug, t.name, t.sort_order AS "sortOrder"
+        `SELECT DISTINCT t.id, t.slug, t.name, t.sort_order AS "sortOrder"
          FROM tabs t
-         INNER JOIN user_tab_access uta ON uta.tab_id = t.id
-         WHERE uta.user_id = $1
+         LEFT JOIN user_tab_access uta ON uta.tab_id = t.id AND uta.user_id = $1
+         WHERE uta.user_id IS NOT NULL OR t.slug = ANY($2::text[])
          ORDER BY t.sort_order`,
-        [userId]
+        [userId, PUBLIC_TAB_SLUGS]
       );
       rows = result.rows;
     }

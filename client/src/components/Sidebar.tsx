@@ -3,6 +3,7 @@ import type { Tab } from '../api/auth';
 import './Sidebar.css';
 
 const TAB_ICONS: Record<string, string> = {
+  'calendar': '📅',
   'beseda': '💬',
   'lectures': '📚',
   'instructions': '📋',

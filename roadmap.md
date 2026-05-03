@@ -269,3 +269,38 @@
 - [ ] Применить миграцию `011_payments.sql` на проде: `npm run migrate`
 - [ ] Протестировать цепочку в тестовом режиме Robokassa (тестовая карта → email с Drive-ссылкой)
 - [ ] Переключить Robokassa в боевой режим, прогнать реальный платёж
+
+---
+
+## Фаза 9. Календарь, уведомления и PWA-инсталл
+
+### 9.1. Календарь событий
+- [x] Миграция `014_calendar.sql` — таблица `calendar_events` (title, description, link, start_at, notified_1h_at, notified_5min_at) + вкладка `calendar` (sort_order=0)
+- [x] Backend `routes/calendar.ts` — CRUD событий (GET для всех, POST/PUT/DELETE для admin/mentor/superadmin)
+- [x] Доступ к вкладке Календарь открыт всем (PUBLIC_TAB_SLUGS в `routes/tabs.ts`)
+- [x] Дефолтный редирект `/` → `/calendar`
+- [x] Frontend `pages/CalendarPage.tsx` — список событий по датам (Сегодня / Завтра / Дата)
+- [x] Прошедшие события в нижней секции серым цветом
+- [x] `components/EventModal.tsx` — модалка просмотра, кнопка "Перейти по ссылке" в новом окне
+- [x] `components/EventEditor.tsx` — форма создания/редактирования (admin/mentor/superadmin)
+- [x] Иконка 📅 первой строкой в Sidebar
+- [x] Seed `calendar` вкладки в `db/seed.ts`
+
+### 9.2. Уведомления (in-app + Badging API)
+- [x] Миграция `015_notifications.sql` — таблица `notifications` (kind ENUM, title, body, link, payload, read_at)
+- [x] Backend `routes/notifications.ts` — GET список, GET общий счётчик, PUT прочитать одно/все
+- [x] Personal-сообщение → notification создаётся, только если получатель не активен в этом чате (трекинг через socket-event `chat:active`)
+- [x] Scheduler (setInterval раз в минуту) — `services/scheduler.ts`, окна 59–61 мин и 4–6 мин до старта события, идемпотентность через `notified_1h_at` / `notified_5min_at`
+- [x] WebSocket-событие `notification:new` — реал-тайм доставка нового уведомления
+- [x] WebSocket-событие `notification:unread` расширено: `messagesUnread`, `notificationsUnread`, `total`
+- [x] `NotificationBell` — иконка с бейджем + дропдаун со списком, переход по клику (внутренние ссылки → navigate, внешние → новое окно)
+- [x] Badging API (`navigator.setAppBadge` / `clearAppBadge`) — цифра на иконке PWA при изменении общего счётчика; молча игнорируется на браузерах без поддержки
+
+### 9.3. PWA-инсталл и мобильная адаптация
+- [x] Кнопка "Установить" в шапке (только мобильные < 768px)
+- [x] Android/Chrome — обработка `beforeinstallprompt`, нативный системный prompt
+- [x] iOS Safari — модалка-подсказка с пошаговой инструкцией ("Поделиться → На экран „Домой"")
+- [x] Скрытие кнопки в standalone-режиме и после установки (event `appinstalled`)
+- [x] "Больше не показывать" сохраняется на 7 дней в localStorage
+- [x] Header адаптирован под мобильные: уменьшённые отступы, компактные кнопки
+- [x] Финальный мобильный аудит компонентов календаря/уведомлений на ширинах 360/390 px
