@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kids-ceo-v1';
+const CACHE_NAME = 'kids-ceo-v2';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',

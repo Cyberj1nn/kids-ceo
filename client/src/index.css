@@ -7,12 +7,13 @@
 }
 
 html {
-  /* `clip` вместо `hidden` — обрезает горизонтальный overflow, но не делает html
-     scroll-контейнером. С `hidden` html и body оба становились scroll-контейнерами
-     одинаковой высоты, wheel-события попадали в «вилку» и терялись на длинных
-     страницах без MainLayout (например, /english_lessons). */
+  /* `clip` обрезает горизонтальный overflow, не делая html scroll-контейнером.
+     С `hidden` html и body оба становились scroll-контейнерами одинаковой высоты,
+     wheel-события попадали в «вилку» и терялись на длинных страницах без MainLayout. */
   overflow-x: clip;
   overscroll-behavior: none;
+  width: 100%;
+  max-width: 100vw;
 }
 
 body {
@@ -24,9 +25,19 @@ body {
   line-height: 1.5;
   overflow-x: clip;
   overscroll-behavior: none;
-  /* PWA safe areas: top — на header'е (fixed), bottom/sides — здесь.
-     Top убран отсюда, чтобы fixed-header сам учитывал env(safe-area-inset-top). */
-  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  width: 100%;
+  max-width: 100vw;
+  /* В PWA на iPhone safe-area-inset-* по бокам и снизу даёт home-indicator/notch.
+     Top — на fixed-header'е (см. Header.css). Боковые insets применяем
+     только в landscape: в portrait они равны 0, и любая попытка добавить
+     их через padding может ломать ширину 100vw. */
+  padding: 0 0 env(safe-area-inset-bottom, 0px) 0;
+}
+
+@media (orientation: landscape) {
+  body {
+    padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  }
 }
 
 /* Scrollbar styling */
