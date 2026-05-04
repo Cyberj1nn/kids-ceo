@@ -1,5 +1,6 @@
 import { query } from '../db/pool';
 import { pushNotificationToUser } from '../socket';
+import { sendPushToUser } from './webPush';
 
 const TICK_MS = 60_000; // раз в минуту
 
@@ -86,6 +87,12 @@ async function processOneHourReminders(): Promise<void> {
         [userId, ev.title, body, link, JSON.stringify({ eventId: ev.id })]
       );
       pushNotificationToUser(userId, rows[0]);
+      void sendPushToUser(userId, {
+        title: ev.title,
+        body,
+        link,
+        tag: `event-1h-${ev.id}`,
+      });
     }
 
     await query(
@@ -123,6 +130,12 @@ async function processFiveMinuteReminders(): Promise<void> {
         [userId, ev.title, body, link, JSON.stringify({ eventId: ev.id })]
       );
       pushNotificationToUser(userId, rows[0]);
+      void sendPushToUser(userId, {
+        title: ev.title,
+        body,
+        link,
+        tag: `event-5min-${ev.id}`,
+      });
     }
 
     await query(
@@ -132,10 +145,92 @@ async function processFiveMinuteReminders(): Promise<void> {
   }
 }
 
+// Текущий час по МСК — для окна срабатывания ДТП-напоминания
+function getMoscowHour(): number {
+  try {
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Europe/Moscow',
+      hour: 'numeric',
+      hour12: false,
+    });
+    const parts = fmt.formatToParts(new Date());
+    const hourPart = parts.find((p) => p.type === 'hour');
+    if (!hourPart) return -1;
+    return parseInt(hourPart.value, 10) % 24;
+  } catch {
+    return -1;
+  }
+}
+
+async function processDtpDailyReminders(): Promise<void> {
+  // Окно срабатывания: 20:00–22:59 МСК (узкое — чтобы не дёргать каждую минуту весь день;
+  // широкое — чтобы переживать рестарты сервера). Идемпотентность через notifications.
+  const hour = getMoscowHour();
+  if (hour < 20 || hour > 22) return;
+
+  // Кому нужно напомнить:
+  //   role='user', не удалён,
+  //   нет dtp_entry за сегодня (МСК) c хоть одним непустым полем,
+  //   за сегодня (МСК) ещё не отправляли dtp_reminder.
+  const { rows } = await query(
+    `WITH today AS (
+       SELECT (NOW() AT TIME ZONE 'Europe/Moscow')::date AS d
+     )
+     SELECT u.id
+     FROM users u, today
+     WHERE u.role = 'user'
+       AND u.deleted_at IS NULL
+       AND NOT EXISTS (
+         SELECT 1 FROM dtp_entries de
+         WHERE de.user_id = u.id
+           AND de.entry_date = today.d
+           AND (
+             COALESCE(NULLIF(TRIM(de.achievements), ''), NULL) IS NOT NULL
+             OR COALESCE(NULLIF(TRIM(de.difficulties), ''), NULL) IS NOT NULL
+             OR COALESCE(NULLIF(TRIM(de.suggestions), ''), NULL) IS NOT NULL
+           )
+       )
+       AND NOT EXISTS (
+         SELECT 1 FROM notifications n, today
+         WHERE n.user_id = u.id
+           AND n.kind = 'dtp_reminder'
+           AND (n.created_at AT TIME ZONE 'Europe/Moscow')::date = today.d
+       )`
+  );
+
+  if (rows.length === 0) return;
+
+  for (const row of rows) {
+    const userId = row.id as string;
+    const { rows: notifRows } = await query(
+      `INSERT INTO notifications (user_id, kind, title, body, link, payload)
+       VALUES ($1, 'dtp_reminder', $2, $3, $4, $5)
+       RETURNING id, kind, title, body, link, payload,
+                 read_at AS "readAt",
+                 created_at AS "createdAt"`,
+      [
+        userId,
+        'Не забудь заполнить ДТП',
+        'Запиши достижения, трудности и предложения за сегодня',
+        '/dtp',
+        JSON.stringify({}),
+      ]
+    );
+    pushNotificationToUser(userId, notifRows[0]);
+    void sendPushToUser(userId, {
+      title: 'Не забудь заполнить ДТП',
+      body: 'Запиши достижения, трудности и предложения за сегодня',
+      link: '/dtp',
+      tag: `dtp-${userId}-${new Date().toISOString().slice(0, 10)}`,
+    });
+  }
+}
+
 async function tick(): Promise<void> {
   try {
     await processOneHourReminders();
     await processFiveMinuteReminders();
+    await processDtpDailyReminders();
   } catch (err) {
     console.error('Scheduler tick error:', err);
   }

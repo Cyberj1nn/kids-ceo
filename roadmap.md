@@ -334,3 +334,58 @@
 - [x] Для audience='all' — всем активным пользователям (как раньше)
 - [x] Для 'users' — только указанным пользователям
 - [x] Для 'groups' — пользователям активных групп события (учитывается мягкое удаление группы)
+
+---
+
+## Фаза 11. Push-уведомления (Web Push API)
+
+> Цель: дублировать существующие in-app уведомления push-сообщениями для пользователей, установивших PWA (или давших разрешение в браузере). Тихие часы — 23:00–8:00 по локальному времени устройства подписки. Тумблер один общий.
+
+### 11.1. Backend — инфраструктура
+- [x] Миграция `017_push_subscriptions.sql` — таблица `push_subscriptions` (id UUID, user_id FK, endpoint TEXT UNIQUE, p256dh TEXT, auth TEXT, user_agent TEXT, timezone TEXT, created_at, last_used_at, deleted_at)
+- [x] Установить пакет `web-push`, сгенерировать VAPID-ключи (`npx web-push generate-vapid-keys`)
+- [x] Добавить в `server/.env.example` и прод-`.env`: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT=mailto:...`
+- [x] `services/webPush.ts` — функция `sendPushToUser(userId, payload)`:
+  - Достаёт активные подписки пользователя (`deleted_at IS NULL`)
+  - Для каждой подписки проверяет тихие часы (23:00–8:00 в `timezone` подписки) — если попало, не шлёт push, но in-app уведомление остаётся
+  - Шлёт через `web-push` с TTL ~24ч
+  - При ответе `404`/`410 Gone` помечает подписку `deleted_at = NOW()`
+  - Обновляет `last_used_at` при успешной отправке
+- [x] Роуты `routes/push.ts`:
+  - `GET /api/push/vapid-public-key` — публичный ключ для клиента
+  - `POST /api/push/subscribe` — body: `{ endpoint, keys: { p256dh, auth }, userAgent, timezone }`. Идемпотентно по `endpoint` (UPSERT)
+  - `DELETE /api/push/subscribe` — body: `{ endpoint }`, мягкое удаление подписки
+
+### 11.2. Service Worker (`client/public/sw.js`)
+- [x] Обработчик `push` — парсит JSON-payload `{ title, body, link, tag, icon }`, показывает нотификацию через `self.registration.showNotification`. `tag` для дедупликации повторных push того же типа
+- [x] Обработчик `notificationclick` — закрывает нотификацию, фокусирует существующее окно PWA через `clients.matchAll`; если нет — `clients.openWindow(link)`
+- [x] Обработчик `pushsubscriptionchange` — переподписаться и отправить новую подписку на `/api/push/subscribe`
+- [x] Не ломать текущее кеширование (network first → cache fallback) — push-обработчики добавляются рядом
+
+### 11.3. Frontend — подписка и UI
+- [x] `lib/push.ts` — utils: VAPID base64url → Uint8Array, регистрация SW (если не зарегистрирован), `subscribeUser()`, `unsubscribeUser()`, отправка подписки на сервер с `timezone = Intl.DateTimeFormat().resolvedOptions().timeZone`
+- [x] После успешного логина (с задержкой ~5 сек): если `Notification.permission === 'granted'` — авто-resubscribe (на случай нового устройства/обновлённого endpoint)
+- [x] Тумблер «Push-уведомления» в профиле / меню пользователя: один общий, при включении вызывает `Notification.requestPermission()` + subscribe; при выключении — unsubscribe
+- [x] Если Safari iOS и не standalone — вместо тумблера показываем подсказку «Push работает только после установки на главный экран»
+- [x] Состояние тумблера читается из `Notification.permission` + наличия активной подписки в `pushManager.getSubscription()`
+
+### 11.4. Триггеры push
+- [x] **Личные сообщения** — `routes/chat.ts`: в месте, где сейчас INSERT в `notifications` при неактивном получателе → дополнительно `sendPushToUser(recipientId, { title: 'Новое сообщение от <Имя>', body: <превью>, link: '/personal-chat/<roomId>', tag: 'chat-<roomId>' })`
+- [x] **Календарь 1ч/5мин** — `services/scheduler.ts`: рядом с `pushNotificationToUser` (или внутри неё) дописать `sendPushToUser` с тем же `link`/`title`
+- [x] **Новый контент** — `routes/content.ts` `POST /api/content`:
+  - После создания `content_item` найти всех `users` с `role='user'`, у кого `user_tab_access` для `tab_id` материала
+  - Создать им `notifications` (`kind='content_new'`, `link='/<tab>/...'`) + `sendPushToUser`
+  - Авторов (admin/mentor/superadmin) — не оповещаем
+- [x] **ДТП ежедневное напоминание (20:00 МСК)** — новый job в `services/scheduler.ts`:
+  - Тикает ежеминутно (общий tick), запускается, когда текущее московское время попадает в окно 20:00–22:59 МСК (широкое окно для устойчивости к рестартам)
+  - Для каждого `users.role='user'` без записи в `dtp_entries` за `entry_date = CURRENT_DATE` (МСК) и без `notifications` с `kind='dtp_reminder'` за сегодня → создать `notifications` + `sendPushToUser` (`title='Не забудь заполнить ДТП'`, `link='/dtp'`)
+  - Идемпотентность — через проверку существующего `dtp_reminder` за сегодня
+  - Тихие часы 23:00–8:00 локального времени подписки применяются на уровне `sendPushToUser` — push молча пропускается, in-app остаётся
+
+### 11.5. Прод-конфигурация
+- [ ] Сгенерировать VAPID-ключи на проде, прописать в `.env`
+- [ ] Применить миграцию `017_push_subscriptions.sql`
+- [ ] Проверить, что `sw.js` обновлённый отдаётся с правильными заголовками (`Service-Worker-Allowed: /`, `Cache-Control: no-cache`) — иначе старый SW может не обновиться
+- [ ] Тест на Android-Chrome (PWA установлен): личное сообщение, событие за 5 мин, новый контент, ДТП-напоминание в 20:00
+- [ ] Тест на iOS Safari (PWA установлен на главный экран): тот же набор
+- [ ] Тест тихих часов: убедиться, что в окне 23:00–8:00 локального времени push не приходит, а in-app — приходит

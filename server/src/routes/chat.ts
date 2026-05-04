@@ -9,6 +9,7 @@ import {
   isUserActiveInRoom,
   pushNotificationToUser,
 } from '../socket';
+import { sendPushToUser } from '../services/webPush';
 
 const router = Router();
 
@@ -236,6 +237,12 @@ router.post('/rooms/:id/messages', authJWT, async (req: AuthRequest, res: Respon
             ]
           );
           await pushNotificationToUser(member.user_id, notifRows[0]);
+          void sendPushToUser(member.user_id, {
+            title: userRows[0].senderName as string,
+            body: preview,
+            link: '/personal-chat',
+            tag: `chat-${roomId}`,
+          });
           continue;
         }
       }

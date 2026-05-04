@@ -18,8 +18,10 @@ import paymentsRouter from './routes/payments';
 import calendarRouter from './routes/calendar';
 import notificationsRouter from './routes/notifications';
 import groupsRouter from './routes/groups';
+import pushRouter from './routes/push';
 import { initSocket } from './socket';
 import { startScheduler } from './services/scheduler';
+import { initWebPush } from './services/webPush';
 
 const app = express();
 const httpServer = createServer(app);
@@ -101,6 +103,7 @@ app.use('/api/notifications', notificationsRouter);
 app.use('/api/notifications', chatRouter);
 app.use('/api/calendar', calendarRouter);
 app.use('/api/groups', groupsRouter);
+app.use('/api/push', pushRouter);
 app.use('/api/dtp', dtpRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/call-tracker', callTrackerRouter);
@@ -122,6 +125,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 httpServer.listen(config.port, () => {
   console.log(`Server running on http://localhost:${config.port}`);
   console.log(`Environment: ${config.nodeEnv}`);
+  initWebPush();
   startScheduler();
 });
 

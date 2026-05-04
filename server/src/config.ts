@@ -53,4 +53,10 @@ export const config = {
   },
 
   adminNotifyEmail: process.env.ADMIN_NOTIFY_EMAIL || '',
+
+  webPush: {
+    publicKey: process.env.VAPID_PUBLIC_KEY || '',
+    privateKey: process.env.VAPID_PRIVATE_KEY || '',
+    subject: process.env.VAPID_SUBJECT || 'mailto:admin@kids-ceo.ru',
+  },
 };

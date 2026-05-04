@@ -29,6 +29,10 @@ function iconForKind(kind: AppNotification['kind']): string {
       return '⏰';
     case 'personal_message':
       return '✉️';
+    case 'content_new':
+      return '📚';
+    case 'dtp_reminder':
+      return '📝';
     default:
       return '🔔';
   }

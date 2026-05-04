@@ -1,6 +1,11 @@
 import api from './axios';
 
-export type NotificationKind = 'event_1h' | 'event_5min' | 'personal_message';
+export type NotificationKind =
+  | 'event_1h'
+  | 'event_5min'
+  | 'personal_message'
+  | 'content_new'
+  | 'dtp_reminder';
 
 export interface AppNotification {
   id: string;

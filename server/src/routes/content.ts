@@ -4,6 +4,8 @@ import { authJWT } from '../middleware/auth';
 import { roleCheck } from '../middleware/roleCheck';
 import { tabAccessCheck } from '../middleware/tabAccess';
 import { AuthRequest } from '../types';
+import { pushNotificationToUser } from '../socket';
+import { sendPushToUser } from '../services/webPush';
 
 const router = Router();
 
@@ -257,12 +259,57 @@ router.post(
       );
 
       res.status(201).json(rows[0]);
+
+      // Уведомления о новом материале — пользователям с доступом к вкладке.
+      // Авторам (admin/mentor/superadmin) не шлём.
+      void notifyContentSubscribers(tabId, title).catch((err) => {
+        console.error('Content notify error:', err);
+      });
     } catch (err) {
       console.error('Content create error:', err);
       res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
   }
 );
+
+async function notifyContentSubscribers(tabId: number | string, contentTitle: string): Promise<void> {
+  const { rows: tabRows } = await query(
+    `SELECT slug, name FROM tabs WHERE id = $1`,
+    [tabId]
+  );
+  if (tabRows.length === 0) return;
+  const tabSlug: string = tabRows[0].slug;
+  const tabName: string = tabRows[0].name;
+
+  const { rows: notifs } = await query(
+    `INSERT INTO notifications (user_id, kind, title, body, link, payload)
+     SELECT u.id, 'content_new', $1, $2, $3, $4
+     FROM users u
+     INNER JOIN user_tab_access uta ON uta.user_id = u.id AND uta.tab_id = $5
+     WHERE u.role = 'user' AND u.deleted_at IS NULL
+     RETURNING id, user_id AS "userId", kind, title, body, link, payload,
+               read_at AS "readAt",
+               created_at AS "createdAt"`,
+    [
+      `Новый материал: ${tabName}`,
+      contentTitle,
+      `/${tabSlug}`,
+      JSON.stringify({ tabId, tabSlug }),
+      tabId,
+    ]
+  );
+
+  for (const n of notifs) {
+    const { userId, ...payload } = n;
+    pushNotificationToUser(userId, payload);
+    void sendPushToUser(userId, {
+      title: `Новый материал: ${tabName}`,
+      body: contentTitle,
+      link: `/${tabSlug}`,
+      tag: `content-${tabSlug}`,
+    });
+  }
+}
 
 // ========================
 // PUT /api/content/:id
