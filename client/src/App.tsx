@@ -77,6 +77,10 @@ export default function App() {
                 <Route index element={<Navigate to="/calendar" replace />} />
                 <Route path="calendar" element={<CalendarPage />} />
                 <Route path="beseda" element={<GeneralChatPage />} />
+                <Route path="beseda-arkhetipy" element={<GeneralChatPage />} />
+                <Route path="beseda-opora" element={<GeneralChatPage />} />
+                <Route path="beseda-otnosheniya" element={<GeneralChatPage />} />
+                <Route path="beseda-finansy" element={<GeneralChatPage />} />
                 <Route path="personal-chat" element={<PersonalChatPage />} />
                 <Route path="dtp" element={<DtpPage />} />
                 <Route path="call-tracker" element={<CallTrackerPage />} />

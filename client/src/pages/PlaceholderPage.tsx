@@ -2,7 +2,11 @@ import { useParams } from 'react-router-dom';
 import './PlaceholderPage.css';
 
 const TAB_TITLES: Record<string, string> = {
-  'beseda': 'Беседа',
+  'beseda': 'Общая беседа',
+  'beseda-arkhetipy': 'Беседа Архетипы',
+  'beseda-opora': 'Беседа Опора',
+  'beseda-otnosheniya': 'Беседа Отношения',
+  'beseda-finansy': 'Беседа Финансы',
   'lectures': 'Лекции',
   'instructions': 'Инструкции',
   'podcasts': 'Подкасты',

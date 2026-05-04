@@ -3,6 +3,7 @@ import { query } from '../db/pool';
 import { authJWT } from '../middleware/auth';
 import { roleCheck } from '../middleware/roleCheck';
 import { AuthRequest } from '../types';
+import { applyGroupTabDefaults } from '../db/queries/chatRooms';
 
 const router = Router();
 const ADMIN_ROLES = roleCheck(['superadmin', 'admin', 'mentor']);
@@ -183,6 +184,12 @@ router.put('/:id/members', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: R
     } catch (err) {
       await query('ROLLBACK');
       throw err;
+    }
+
+    // Открыть дефолтные вкладки и членство в чатах для всех текущих участников.
+    // Удалённым из группы доступ сохраняется — админ может закрыть вручную.
+    for (const uid of userIds) {
+      await applyGroupTabDefaults(uid, addedBy);
     }
 
     res.json({ message: 'Участники обновлены', count: userIds.length });

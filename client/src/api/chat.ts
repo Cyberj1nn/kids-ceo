@@ -4,6 +4,7 @@ export interface ChatRoom {
   id: string;
   type: 'general' | 'personal';
   name: string;
+  tabSlug: string | null;
   createdAt: string;
   lastMessage: string | null;
   lastMessageAt: string | null;

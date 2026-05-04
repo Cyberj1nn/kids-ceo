@@ -26,6 +26,7 @@ router.get('/rooms', authJWT, async (req: AuthRequest, res: Response) => {
          cr.id,
          cr.type,
          cr.name,
+         cr.tab_slug AS "tabSlug",
          cr.created_at AS "createdAt",
          -- Последнее сообщение
          (SELECT m.text FROM messages m WHERE m.chat_room_id = cr.id ORDER BY m.created_at DESC LIMIT 1) AS "lastMessage",

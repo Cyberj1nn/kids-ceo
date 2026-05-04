@@ -7,7 +7,7 @@ async function seed() {
   // =====================
   const tabs = [
     { slug: 'calendar', name: 'Календарь', sort_order: 0 },
-    { slug: 'beseda', name: 'Беседа', sort_order: 1 },
+    { slug: 'beseda', name: 'Общая беседа', sort_order: 1 },
     { slug: 'lectures', name: 'Лекции', sort_order: 2 },
     { slug: 'instructions', name: 'Инструкции', sort_order: 3 },
     { slug: 'podcasts', name: 'Подкасты', sort_order: 4 },
@@ -18,6 +18,10 @@ async function seed() {
     { slug: 'personal-chat', name: 'Личная беседа', sort_order: 9 },
     { slug: 'dtp', name: 'ДТП', sort_order: 10 },
     { slug: 'call-tracker', name: 'Трекер созвонов', sort_order: 11 },
+    { slug: 'beseda-arkhetipy',  name: 'Беседа Архетипы',  sort_order: 12 },
+    { slug: 'beseda-opora',      name: 'Беседа Опора',     sort_order: 13 },
+    { slug: 'beseda-otnosheniya',name: 'Беседа Отношения', sort_order: 14 },
+    { slug: 'beseda-finansy',    name: 'Беседа Финансы',   sort_order: 15 },
   ];
 
   for (const tab of tabs) {
@@ -164,6 +168,91 @@ async function seed() {
     [superadminId]
   );
   console.log(`  Superadmin seeded (login: ${superadminLogin}, password: ${superadminPassword})`);
+
+  // =====================
+  // 4. Программные чаты + переименование общего чата (идемпотентно)
+  // =====================
+  await pool.query(
+    `UPDATE chat_rooms
+        SET tab_slug = 'beseda', name = 'Общая беседа'
+      WHERE id = '00000000-0000-0000-0000-000000000001'`
+  );
+
+  const programChats = [
+    { id: '00000000-0000-0000-0000-000000000010', name: 'Беседа Архетипы',  tab_slug: 'beseda-arkhetipy'   },
+    { id: '00000000-0000-0000-0000-000000000011', name: 'Беседа Опора',     tab_slug: 'beseda-opora'       },
+    { id: '00000000-0000-0000-0000-000000000012', name: 'Беседа Отношения', tab_slug: 'beseda-otnosheniya' },
+    { id: '00000000-0000-0000-0000-000000000013', name: 'Беседа Финансы',   tab_slug: 'beseda-finansy'     },
+  ];
+
+  for (const room of programChats) {
+    await pool.query(
+      `INSERT INTO chat_rooms (id, type, name, tab_slug)
+       VALUES ($1, 'general', $2, $3)
+       ON CONFLICT (id) DO UPDATE
+         SET name = EXCLUDED.name, tab_slug = EXCLUDED.tab_slug`,
+      [room.id, room.name, room.tab_slug]
+    );
+  }
+
+  // Все admin/mentor/superadmin — в новые программные чаты
+  await pool.query(
+    `INSERT INTO chat_room_members (chat_room_id, user_id)
+     SELECT cr.id, u.id
+       FROM chat_rooms cr
+       CROSS JOIN users u
+      WHERE cr.id IN (
+            '00000000-0000-0000-0000-000000000010',
+            '00000000-0000-0000-0000-000000000011',
+            '00000000-0000-0000-0000-000000000012',
+            '00000000-0000-0000-0000-000000000013'
+        )
+        AND u.role IN ('admin','mentor','superadmin')
+        AND u.deleted_at IS NULL
+     ON CONFLICT DO NOTHING`
+  );
+  console.log(`  Program chats seeded (${programChats.length})`);
+
+  // =====================
+  // 5. Группы пользователей + дефолтные вкладки
+  // =====================
+  const groupSpecs: { name: string; tabSlugs: string[] }[] = [
+    { name: 'Клуб',                tabSlugs: ['beseda','marathons','lectures','books','instructions','podcasts','films','program-360'] },
+    { name: 'Личка',               tabSlugs: ['personal-chat','marathons','dtp','call-tracker'] },
+    { name: 'Программа Архетипы',  tabSlugs: ['beseda-arkhetipy'] },
+    { name: 'Программа Опора',     tabSlugs: ['beseda-opora'] },
+    { name: 'Программа Отношения', tabSlugs: ['beseda-otnosheniya'] },
+    { name: 'Программа Финансы',   tabSlugs: ['beseda-finansy'] },
+  ];
+
+  for (const spec of groupSpecs) {
+    // Создать группу, если её нет (case-insensitive по активным)
+    const { rows: existing } = await pool.query(
+      `SELECT id FROM user_groups WHERE lower(name) = lower($1) AND deleted_at IS NULL`,
+      [spec.name]
+    );
+    let groupId: string;
+    if (existing.length > 0) {
+      groupId = existing[0].id;
+    } else {
+      const { rows: created } = await pool.query(
+        `INSERT INTO user_groups (name, created_by) VALUES ($1, $2) RETURNING id`,
+        [spec.name, superadminId]
+      );
+      groupId = created[0].id;
+    }
+
+    // Mapping: вкладки этой группы
+    for (const slug of spec.tabSlugs) {
+      await pool.query(
+        `INSERT INTO user_group_tab_defaults (group_id, tab_id)
+         SELECT $1, t.id FROM tabs t WHERE t.slug = $2
+         ON CONFLICT DO NOTHING`,
+        [groupId, slug]
+      );
+    }
+  }
+  console.log(`  Groups + tab defaults seeded (${groupSpecs.length})`);
 }
 
 seed()

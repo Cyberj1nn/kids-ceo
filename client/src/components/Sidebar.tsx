@@ -15,6 +15,10 @@ const TAB_ICONS: Record<string, string> = {
   'personal-chat': '✉️',
   'dtp': '📊',
   'call-tracker': '📞',
+  'beseda-arkhetipy': '💬',
+  'beseda-opora': '💬',
+  'beseda-otnosheniya': '💬',
+  'beseda-finansy': '💬',
 };
 
 interface SidebarProps {

@@ -5,7 +5,13 @@ import { query } from '../db/pool';
 import { authJWT } from '../middleware/auth';
 import { roleCheck } from '../middleware/roleCheck';
 import { AuthRequest } from '../types';
-import { createPersonalRoom, addAdminToAllPersonalRooms, addUserToGeneralRoom } from '../db/queries/chatRooms';
+import {
+  createPersonalRoom,
+  addAdminToAllPersonalRooms,
+  addUserToGeneralRoom,
+  addAdminToAllGeneralRooms,
+  applyGroupTabDefaults,
+} from '../db/queries/chatRooms';
 
 const router = Router();
 const ADMIN_ROLES = roleCheck(['superadmin', 'admin', 'mentor']);
@@ -76,15 +82,16 @@ router.post('/', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Response) =
 
     const newUser = rows[0];
 
-    // Добавить в общую комнату чата
+    // Добавить в основную "Общую беседу"
     await addUserToGeneralRoom(newUser.id);
 
     // Создать личную комнату (для обычных пользователей)
     if (targetRole === 'user') {
       await createPersonalRoom(newUser.id, firstName, lastName);
     } else {
-      // Админ/наставник — добавить во все существующие личные комнаты
+      // Админ/наставник/суперадмин — во все существующие личные и программные общие чаты
       await addAdminToAllPersonalRooms(newUser.id);
+      await addAdminToAllGeneralRooms(newUser.id);
     }
 
     res.status(201).json(newUser);
@@ -305,6 +312,10 @@ router.put('/:id/groups', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Re
       throw err;
     }
 
+    // Открыть дефолтные вкладки и членство в чатах для новых групп.
+    // Старые tab access не отзываем — админ может выключить вручную.
+    await applyGroupTabDefaults(userId, addedBy);
+
     res.json({ message: 'Группы обновлены', count: groupIds.length });
   } catch (err) {
     console.error('User set groups error:', err);
@@ -332,6 +343,21 @@ router.put('/:id/tabs', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Resp
       await query(
         'INSERT INTO user_tab_access (user_id, tab_id, granted_by) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
         [userId, tabId, grantedBy]
+      );
+    }
+
+    // Синхронизировать членство в general-чатах с выданными вкладками.
+    // Только добавляем — членство снимать не нужно (история должна сохраняться).
+    if (tabIds.length > 0) {
+      await query(
+        `INSERT INTO chat_room_members (chat_room_id, user_id)
+         SELECT cr.id, $1
+           FROM chat_rooms cr
+           JOIN tabs t ON t.slug = cr.tab_slug
+          WHERE cr.type = 'general'
+            AND t.id = ANY($2::int[])
+         ON CONFLICT DO NOTHING`,
+        [userId, tabIds]
       );
     }
 
