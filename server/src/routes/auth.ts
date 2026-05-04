@@ -46,7 +46,7 @@ router.post('/login', async (req: AuthRequest, res: Response) => {
 
     // Логин — case-insensitive: "Superadmin" и "superadmin" должны находить одну запись
     const { rows } = await query(
-      'SELECT id, first_name, last_name, login, password_hash, role FROM users WHERE LOWER(login) = LOWER($1) AND deleted_at IS NULL',
+      'SELECT id, first_name, last_name, login, password_hash, role, must_change_password FROM users WHERE LOWER(login) = LOWER($1) AND deleted_at IS NULL',
       [login.trim()]
     );
 
@@ -85,6 +85,7 @@ router.post('/login', async (req: AuthRequest, res: Response) => {
         lastName: user.last_name,
         login: user.login,
         role: user.role,
+        mustChangePassword: user.must_change_password,
       },
     });
   } catch (err) {
@@ -174,12 +175,68 @@ router.post('/logout', authJWT, async (req: AuthRequest, res: Response) => {
 });
 
 // ========================
+// PUT /api/auth/password — самостоятельная смена пароля
+// ========================
+router.put('/password', authJWT, async (req: AuthRequest, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ error: 'Текущий и новый пароли обязательны' });
+      return;
+    }
+
+    if (typeof newPassword !== 'string' || newPassword.length < 6) {
+      res.status(400).json({ error: 'Новый пароль должен содержать минимум 6 символов' });
+      return;
+    }
+
+    if (currentPassword === newPassword) {
+      res.status(400).json({ error: 'Новый пароль должен отличаться от текущего' });
+      return;
+    }
+
+    const userId = req.user!.userId;
+
+    const { rows } = await query(
+      'SELECT password_hash FROM users WHERE id = $1 AND deleted_at IS NULL',
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      res.status(404).json({ error: 'Пользователь не найден' });
+      return;
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, rows[0].password_hash);
+    if (!isValid) {
+      res.status(401).json({ error: 'Текущий пароль указан неверно' });
+      return;
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await query(
+      `UPDATE users
+         SET password_hash = $1,
+             must_change_password = false
+       WHERE id = $2`,
+      [newHash, userId]
+    );
+
+    res.json({ message: 'Пароль обновлён' });
+  } catch (err) {
+    console.error('Change password error:', err);
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+  }
+});
+
+// ========================
 // GET /api/auth/me
 // ========================
 router.get('/me', authJWT, async (req: AuthRequest, res: Response) => {
   try {
     const { rows } = await query(
-      'SELECT id, first_name, last_name, login, role FROM users WHERE id = $1 AND deleted_at IS NULL',
+      'SELECT id, first_name, last_name, login, role, must_change_password FROM users WHERE id = $1 AND deleted_at IS NULL',
       [req.user!.userId]
     );
 
@@ -195,6 +252,7 @@ router.get('/me', authJWT, async (req: AuthRequest, res: Response) => {
       lastName: user.last_name,
       login: user.login,
       role: user.role,
+      mustChangePassword: user.must_change_password,
     });
   } catch (err) {
     console.error('Me error:', err);

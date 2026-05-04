@@ -68,8 +68,8 @@ router.post('/', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Response) =
     const passwordHash = await bcrypt.hash(password, 10);
 
     const { rows } = await query(
-      `INSERT INTO users (first_name, last_name, login, password_hash, role)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO users (first_name, last_name, login, password_hash, role, must_change_password)
+       VALUES ($1, $2, $3, $4, $5, true)
        RETURNING id, first_name AS "firstName", last_name AS "lastName", login, role`,
       [firstName, lastName, login, passwordHash, targetRole]
     );
@@ -160,7 +160,11 @@ router.post('/:id/reset-password', authJWT, ADMIN_ROLES, async (req: AuthRequest
     const hash = await bcrypt.hash(newPassword, 10);
 
     const { rows } = await query(
-      `UPDATE users SET password_hash = $1 WHERE id = $2 AND deleted_at IS NULL RETURNING id`,
+      `UPDATE users
+         SET password_hash = $1,
+             must_change_password = true
+       WHERE id = $2 AND deleted_at IS NULL
+       RETURNING id`,
       [hash, userId]
     );
 

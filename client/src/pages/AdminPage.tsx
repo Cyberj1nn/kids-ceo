@@ -236,7 +236,10 @@ export default function AdminPage() {
           {/* Generated password alert */}
           {generatedPassword && (
             <div className="admin-alert">
-              <strong>Новый пароль:</strong> <code>{generatedPassword.password}</code>
+              <strong>Временный пароль:</strong> <code>{generatedPassword.password}</code>
+              <span style={{ marginLeft: 8, fontSize: 13, opacity: 0.8 }}>
+                — передайте пользователю; при входе потребуется задать постоянный пароль.
+              </span>
               <button onClick={() => setGeneratedPassword(null)}>✕</button>
             </div>
           )}

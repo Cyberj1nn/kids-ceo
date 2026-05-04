@@ -5,6 +5,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import PrivateRoute from './components/PrivateRoute';
 import MainLayout from './components/MainLayout';
 import LoginPage from './pages/LoginPage';
+import ChangePasswordPage from './pages/ChangePasswordPage';
 import CalendarPage from './pages/CalendarPage';
 import ContentPage from './pages/ContentPage';
 import SimplePage from './pages/SimplePage';
@@ -40,6 +41,14 @@ export default function App() {
           <SocketProvider>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
+              <Route
+                path="/change-password"
+                element={
+                  <PrivateRoute>
+                    <ChangePasswordPage />
+                  </PrivateRoute>
+                }
+              />
 
               <Route path="/english_lessons" element={<EnglishLessonsPage />} />
               <Route path="/english_lessons/success" element={<EnglishLessonsSuccessPage />} />

@@ -6,6 +6,7 @@ export interface User {
   lastName: string;
   login: string;
   role: 'user' | 'admin' | 'superadmin' | 'mentor';
+  mustChangePassword?: boolean;
 }
 
 export interface LoginResponse {
@@ -34,4 +35,8 @@ export async function getMe(): Promise<User> {
 export async function getTabs(): Promise<Tab[]> {
   const { data } = await api.get<Tab[]>('/tabs');
   return data;
+}
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  await api.put('/auth/password', { currentPassword, newPassword });
 }
