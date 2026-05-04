@@ -4,6 +4,7 @@
   justify-content: center;
   width: 40px;
   height: 40px;
+  flex-shrink: 0;
   background: #f3f4f6;
   border: 1px solid #e5e7eb;
   border-radius: 50%;
@@ -11,6 +12,15 @@
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
   padding: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .push-toggle {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
 }
 
 .push-toggle:hover:not(:disabled) {
