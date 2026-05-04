@@ -1,6 +1,12 @@
 import api from './axios';
 
 export type AudienceType = 'all' | 'users' | 'groups';
+export type EditScope = 'this' | 'following';
+
+export interface RecurrencePattern {
+  weekdays: number[]; // 0..6, 0=Sun
+  until: string;      // 'YYYY-MM-DD'
+}
 
 export interface CalendarEvent {
   id: string;
@@ -11,6 +17,8 @@ export interface CalendarEvent {
   createdBy: string;
   createdAt: string;
   audienceType: AudienceType;
+  recurrenceId: string | null;
+  recurrencePattern: RecurrencePattern | null;
   // приходят только в админской выдаче (для редактирования)
   audienceUserIds?: string[];
   audienceGroupIds?: string[];
@@ -24,6 +32,12 @@ export interface CalendarEventInput {
   audienceType: AudienceType;
   audienceUserIds?: string[];
   audienceGroupIds?: string[];
+  recurrence?: RecurrencePattern | null;
+}
+
+export interface CreateRecurringResult {
+  events: CalendarEvent[];
+  recurrenceId: string;
 }
 
 export async function getEvents(params?: { from?: string; to?: string }): Promise<CalendarEvent[]> {
@@ -31,16 +45,29 @@ export async function getEvents(params?: { from?: string; to?: string }): Promis
   return data;
 }
 
-export async function createEvent(input: CalendarEventInput): Promise<CalendarEvent> {
-  const { data } = await api.post<CalendarEvent>('/calendar/events', input);
+export async function createEvent(
+  input: CalendarEventInput
+): Promise<CalendarEvent | CreateRecurringResult> {
+  const { data } = await api.post<CalendarEvent | CreateRecurringResult>('/calendar/events', input);
   return data;
 }
 
-export async function updateEvent(id: string, input: Partial<CalendarEventInput>): Promise<CalendarEvent> {
-  const { data } = await api.put<CalendarEvent>(`/calendar/events/${id}`, input);
+export async function updateEvent(
+  id: string,
+  input: Partial<CalendarEventInput>,
+  scope: EditScope = 'this'
+): Promise<CalendarEvent & { affectedCount: number }> {
+  const { data } = await api.put<CalendarEvent & { affectedCount: number }>(
+    `/calendar/events/${id}`,
+    input,
+    { params: { scope } }
+  );
   return data;
 }
 
-export async function deleteEvent(id: string): Promise<void> {
-  await api.delete(`/calendar/events/${id}`);
+export async function deleteEvent(id: string, scope: EditScope = 'this'): Promise<{ affectedCount: number }> {
+  const { data } = await api.delete<{ affectedCount: number }>(`/calendar/events/${id}`, {
+    params: { scope },
+  });
+  return data;
 }

@@ -7,9 +7,12 @@ import {
   deleteEvent,
   type CalendarEvent,
   type CalendarEventInput,
+  type EditScope,
+  type CreateRecurringResult,
 } from '../api/calendar';
 import EventModal from '../components/EventModal';
 import EventEditor from '../components/EventEditor';
+import RecurrenceScopeDialog from '../components/RecurrenceScopeDialog';
 import './CalendarPage.css';
 
 const ADMIN_ROLES = ['admin', 'mentor', 'superadmin'];
@@ -41,6 +44,10 @@ function dayKey(iso: string): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+function isRecurringResult(x: CalendarEvent | CreateRecurringResult): x is CreateRecurringResult {
+  return (x as CreateRecurringResult).events !== undefined;
+}
+
 export default function CalendarPage() {
   const { user } = useAuth();
   const isAdmin = !!user && ADMIN_ROLES.includes(user.role);
@@ -52,6 +59,13 @@ export default function CalendarPage() {
   const [selected, setSelected] = useState<CalendarEvent | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<CalendarEvent | null>(null);
+  const [editScope, setEditScope] = useState<EditScope>('this');
+
+  // Диалог выбора scope (для серии)
+  const [scopePrompt, setScopePrompt] = useState<{
+    action: 'edit' | 'delete';
+    event: CalendarEvent;
+  } | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -98,21 +112,79 @@ export default function CalendarPage() {
 
   const handleSave = async (input: CalendarEventInput) => {
     if (editTarget) {
-      const updated = await updateEvent(editTarget.id, input);
-      setEvents((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
+      const updated = await updateEvent(editTarget.id, input, editScope);
+      // Если scope=following — затронуто несколько событий, проще перезагрузить всё
+      if (editScope === 'following' || (updated.affectedCount && updated.affectedCount > 1)) {
+        await load();
+      } else {
+        setEvents((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
+      }
     } else {
       const created = await createEvent(input);
-      setEvents((prev) => [...prev, created].sort((a, b) => a.startAt.localeCompare(b.startAt)));
+      if (isRecurringResult(created)) {
+        // Серия — перезагружаем
+        await load();
+      } else {
+        setEvents((prev) => [...prev, created].sort((a, b) => a.startAt.localeCompare(b.startAt)));
+      }
     }
     setEditorOpen(false);
     setEditTarget(null);
+    setEditScope('this');
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeleteRequest = (ev: CalendarEvent) => {
+    if (ev.recurrenceId) {
+      setScopePrompt({ action: 'delete', event: ev });
+      return;
+    }
     if (!confirm('Удалить событие?')) return;
-    await deleteEvent(id);
-    setEvents((prev) => prev.filter((e) => e.id !== id));
+    void doDelete(ev.id, 'this');
+  };
+
+  const handleEditRequest = (ev: CalendarEvent) => {
+    if (ev.recurrenceId) {
+      setScopePrompt({ action: 'edit', event: ev });
+      return;
+    }
+    setEditTarget(ev);
+    setEditScope('this');
+    setEditorOpen(true);
     setSelected(null);
+  };
+
+  const handleScopeChosen = (scope: EditScope) => {
+    if (!scopePrompt) return;
+    const ev = scopePrompt.event;
+    const action = scopePrompt.action;
+    setScopePrompt(null);
+
+    if (action === 'delete') {
+      const message = scope === 'following'
+        ? 'Удалить это и все последующие события серии?'
+        : 'Удалить только это событие?';
+      if (!confirm(message)) return;
+      void doDelete(ev.id, scope);
+    } else {
+      setEditTarget(ev);
+      setEditScope(scope);
+      setEditorOpen(true);
+      setSelected(null);
+    }
+  };
+
+  const doDelete = async (id: string, scope: EditScope) => {
+    try {
+      const res = await deleteEvent(id, scope);
+      if (scope === 'following' || res.affectedCount > 1) {
+        await load();
+      } else {
+        setEvents((prev) => prev.filter((e) => e.id !== id));
+      }
+      setSelected(null);
+    } catch (err: any) {
+      alert(err?.response?.data?.error || 'Не удалось удалить событие');
+    }
   };
 
   const renderCard = (ev: CalendarEvent, isPast: boolean) => (
@@ -124,7 +196,10 @@ export default function CalendarPage() {
     >
       <div className="calendar-card-time">{formatTime(ev.startAt)}</div>
       <div className="calendar-card-body">
-        <div className="calendar-card-title">{ev.title}</div>
+        <div className="calendar-card-title">
+          {ev.title}
+          {ev.recurrenceId && <span className="calendar-card-recurring" title="Повторяющееся событие"> ↻</span>}
+        </div>
         {ev.description && <div className="calendar-card-desc">{ev.description}</div>}
         {ev.link && <div className="calendar-card-link">🔗 Есть ссылка</div>}
       </div>
@@ -140,6 +215,7 @@ export default function CalendarPage() {
             className="calendar-add-btn"
             onClick={() => {
               setEditTarget(null);
+              setEditScope('this');
               setEditorOpen(true);
             }}
           >
@@ -192,12 +268,8 @@ export default function CalendarPage() {
           event={selected}
           isAdmin={isAdmin}
           onClose={() => setSelected(null)}
-          onEdit={() => {
-            setEditTarget(selected);
-            setEditorOpen(true);
-            setSelected(null);
-          }}
-          onDelete={() => handleDelete(selected.id)}
+          onEdit={() => handleEditRequest(selected)}
+          onDelete={() => handleDeleteRequest(selected)}
         />
       )}
 
@@ -207,8 +279,17 @@ export default function CalendarPage() {
           onCancel={() => {
             setEditorOpen(false);
             setEditTarget(null);
+            setEditScope('this');
           }}
           onSave={handleSave}
+        />
+      )}
+
+      {scopePrompt && (
+        <RecurrenceScopeDialog
+          action={scopePrompt.action}
+          onChoose={handleScopeChosen}
+          onCancel={() => setScopePrompt(null)}
         />
       )}
     </div>

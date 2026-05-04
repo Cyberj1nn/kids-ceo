@@ -270,6 +270,94 @@
   padding-left: 4px;
 }
 
+/* Recurrence block */
+.event-editor-recurrence {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.event-editor-recurrence-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.event-editor-recurrence-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #6c63ff;
+  cursor: pointer;
+}
+
+.event-editor-weekdays {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.event-editor-weekday {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  user-select: none;
+}
+
+.event-editor-weekday input[type="checkbox"] {
+  display: none;
+}
+
+.event-editor-weekday--active {
+  background: #6c63ff;
+  border-color: #6c63ff;
+  color: #fff;
+}
+
+.event-editor-recurrence-until {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.event-editor-recurrence-until label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.event-editor-recurrence-until input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  min-height: 44px;
+}
+
+.event-editor-recurrence-locked {
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+}
+
 @media (max-width: 480px) {
   .event-editor {
     padding: 22px 18px;
@@ -280,5 +368,10 @@
   .event-editor-audience-tab {
     font-size: 11px;
     padding: 8px 4px;
+  }
+  .event-editor-weekday {
+    min-width: 36px;
+    height: 36px;
+    font-size: 12px;
   }
 }

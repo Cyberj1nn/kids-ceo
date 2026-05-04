@@ -1,0 +1,79 @@
+.recurrence-scope-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1100;
+}
+
+.recurrence-scope-dialog {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 380px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+.recurrence-scope-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.recurrence-scope-text {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.recurrence-scope-option {
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a2e;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+  min-height: 48px;
+}
+
+.recurrence-scope-option:hover {
+  background: #f3f4f6;
+  border-color: #6c63ff;
+}
+
+.recurrence-scope-option--danger {
+  color: #b91c1c;
+}
+
+.recurrence-scope-option--danger:hover {
+  background: #fef2f2;
+  border-color: #b91c1c;
+}
+
+.recurrence-scope-cancel {
+  margin-top: 4px;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  color: #6b7280;
+  cursor: pointer;
+  border-radius: 8px;
+  min-height: 40px;
+}
+
+.recurrence-scope-cancel:hover {
+  background: #f3f4f6;
+}

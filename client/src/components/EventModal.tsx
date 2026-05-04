@@ -94,7 +94,10 @@ export default function EventModal({ event, isAdmin, onClose, onEdit, onDelete }
         <button className="event-modal-close" onClick={onClose} aria-label="Закрыть">✕</button>
 
         <div className="event-modal-date">{formatFullDate(event.startAt)}</div>
-        <h2 className="event-modal-title">{event.title}</h2>
+        <h2 className="event-modal-title">
+          {event.title}
+          {event.recurrenceId && <span style={{ color: '#6c63ff', fontSize: 14, marginLeft: 6 }} title="Повторяющееся событие"> ↻</span>}
+        </h2>
 
         {event.description && (
           <div className="event-modal-description">{event.description}</div>

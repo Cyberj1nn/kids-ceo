@@ -162,6 +162,12 @@
   color: #6b7280;
 }
 
+.calendar-card-recurring {
+  font-size: 13px;
+  color: #6c63ff;
+  margin-left: 4px;
+}
+
 .calendar-card-desc {
   font-size: 13px;
   color: #6b7280;

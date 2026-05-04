@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { randomUUID } from 'crypto';
 import { query } from '../db/pool';
 import { authJWT } from '../middleware/auth';
 import { roleCheck } from '../middleware/roleCheck';
@@ -14,6 +15,15 @@ interface AudienceInput {
   audienceUserIds?: string[];
   audienceGroupIds?: string[];
 }
+
+interface RecurrenceInput {
+  // День недели в формате JS Date.getDay(): 0=Sun, 1=Mon, ..., 6=Sat
+  weekdays: number[];
+  // ISO дата (YYYY-MM-DD), включительно
+  until: string;
+}
+
+const MAX_RECURRING_EVENTS = 365; // защита от бесконечной генерации
 
 function isAdminRole(role: string): boolean {
   return role === 'superadmin' || role === 'admin' || role === 'mentor';
@@ -72,6 +82,44 @@ function validateAudience(payload: AudienceInput): string | null {
   return null;
 }
 
+function validateRecurrence(rec: any): string | null {
+  if (!rec || typeof rec !== 'object') return null;
+  if (!Array.isArray(rec.weekdays) || rec.weekdays.length === 0) {
+    return 'Выберите хотя бы один день недели';
+  }
+  for (const w of rec.weekdays) {
+    if (typeof w !== 'number' || w < 0 || w > 6) {
+      return 'Некорректный день недели (ожидается 0-6)';
+    }
+  }
+  if (typeof rec.until !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(rec.until)) {
+    return 'Некорректная дата окончания (YYYY-MM-DD)';
+  }
+  return null;
+}
+
+/**
+ * Генерирует список start_at дат для серии: начиная со startAt,
+ * берёт время из startAt и день каждой даты <= until,
+ * у которой день недели входит в weekdays.
+ */
+function generateRecurrenceDates(startAt: Date, recurrence: RecurrenceInput): Date[] {
+  const dates: Date[] = [];
+  // until — конец дня в локали сервера; intent пользователя — включительно
+  const untilDate = new Date(`${recurrence.until}T23:59:59`);
+
+  const cursor = new Date(startAt.getTime());
+  // Сбрасываем на начало даты startAt, время берём оригинальное
+  while (cursor.getTime() <= untilDate.getTime() && dates.length < MAX_RECURRING_EVENTS) {
+    if (recurrence.weekdays.includes(cursor.getDay())) {
+      dates.push(new Date(cursor.getTime()));
+    }
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return dates;
+}
+
 // GET /api/calendar/events?from=ISO&to=ISO
 // Видимость:
 //  - admin/mentor/superadmin → все события
@@ -123,6 +171,8 @@ router.get('/events', authJWT, async (req: AuthRequest, res: Response) => {
       `SELECT e.id, e.title, e.description, e.link,
               e.start_at AS "startAt",
               e.audience_type AS "audienceType",
+              e.recurrence_id AS "recurrenceId",
+              e.recurrence_pattern AS "recurrencePattern",
               e.created_by AS "createdBy",
               e.created_at AS "createdAt"
        FROM calendar_events e
@@ -166,9 +216,10 @@ router.get('/events', authJWT, async (req: AuthRequest, res: Response) => {
 });
 
 // POST /api/calendar/events
+// body может содержать recurrence: { weekdays: [0..6], until: 'YYYY-MM-DD' }
 router.post('/events', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Response) => {
   try {
-    const { title, description, link, startAt } = req.body;
+    const { title, description, link, startAt, recurrence } = req.body;
     const userId = req.user!.userId;
 
     const audience: AudienceInput = {
@@ -198,31 +249,83 @@ router.post('/events', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Respo
       return;
     }
 
+    const recErr = validateRecurrence(recurrence);
+    if (recErr) {
+      res.status(400).json({ error: recErr });
+      return;
+    }
+
     const cleanLink = (link || '').trim() || null;
     const cleanDesc = (description || '').trim() || null;
 
+    // Если есть recurrence — генерируем массив дат, иначе одна дата
+    let datesToCreate: Date[];
+    let recurrenceId: string | null = null;
+    let recurrencePatternJson: string | null = null;
+
+    if (recurrence) {
+      const generated = generateRecurrenceDates(startDate, recurrence as RecurrenceInput);
+      if (generated.length === 0) {
+        res.status(400).json({ error: 'Ни одна дата не подходит под расписание' });
+        return;
+      }
+      datesToCreate = generated;
+      recurrenceId = randomUUID();
+      recurrencePatternJson = JSON.stringify({
+        weekdays: (recurrence as RecurrenceInput).weekdays,
+        until: (recurrence as RecurrenceInput).until,
+      });
+    } else {
+      datesToCreate = [startDate];
+    }
+
     await query('BEGIN');
     try {
-      const { rows } = await query(
-        `INSERT INTO calendar_events (title, description, link, start_at, created_by, audience_type)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING id, title, description, link,
-                   start_at AS "startAt",
-                   audience_type AS "audienceType",
-                   created_by AS "createdBy",
-                   created_at AS "createdAt"`,
-        [title.trim(), cleanDesc, cleanLink, startDate.toISOString(), userId, audience.audienceType]
-      );
+      const created: any[] = [];
+      for (const d of datesToCreate) {
+        const { rows } = await query(
+          `INSERT INTO calendar_events
+             (title, description, link, start_at, created_by, audience_type, recurrence_id, recurrence_pattern)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           RETURNING id, title, description, link,
+                     start_at AS "startAt",
+                     audience_type AS "audienceType",
+                     recurrence_id AS "recurrenceId",
+                     recurrence_pattern AS "recurrencePattern",
+                     created_by AS "createdBy",
+                     created_at AS "createdAt"`,
+          [
+            title.trim(),
+            cleanDesc,
+            cleanLink,
+            d.toISOString(),
+            userId,
+            audience.audienceType,
+            recurrenceId,
+            recurrencePatternJson,
+          ]
+        );
 
-      await setEventAudience(rows[0].id, audience);
+        await setEventAudience(rows[0].id, audience);
+        created.push(rows[0]);
+      }
+
       await query('COMMIT');
 
-      const aud = await fetchEventAudience(rows[0].id);
-      res.status(201).json({
-        ...rows[0],
-        audienceUserIds: aud.userIds,
-        audienceGroupIds: aud.groupIds,
-      });
+      // Возвращаем созданные события с audience-полями
+      const result = await Promise.all(
+        created.map(async (ev) => {
+          const aud = await fetchEventAudience(ev.id);
+          return { ...ev, audienceUserIds: aud.userIds, audienceGroupIds: aud.groupIds };
+        })
+      );
+
+      // Если серия — отдаём массив, иначе одно событие (для обратной совместимости)
+      if (recurrenceId) {
+        res.status(201).json({ events: result, recurrenceId });
+      } else {
+        res.status(201).json(result[0]);
+      }
     } catch (err) {
       await query('ROLLBACK');
       throw err;
@@ -233,43 +336,79 @@ router.post('/events', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Respo
   }
 });
 
-// PUT /api/calendar/events/:id
+// PUT /api/calendar/events/:id?scope=this|following
+// scope=this (default) — только это событие
+// scope=following     — это событие и все последующие в серии (по start_at)
 router.put('/events/:id', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Response) => {
   try {
     const eventId = req.params.id as string;
+    const scope = (req.query.scope as string) === 'following' ? 'following' : 'this';
     const { title, description, link, startAt } = req.body;
     const audienceProvided = req.body.audienceType !== undefined;
 
-    const fields: string[] = [];
-    const values: any[] = [];
-    let idx = 1;
+    // Подтягиваем оригинал, чтобы знать recurrence_id и start_at
+    const { rows: origRows } = await query(
+      `SELECT id, start_at, recurrence_id
+         FROM calendar_events
+        WHERE id = $1 AND deleted_at IS NULL`,
+      [eventId]
+    );
+    if (origRows.length === 0) {
+      res.status(404).json({ error: 'Событие не найдено' });
+      return;
+    }
+    const orig = origRows[0];
+
+    // Определяем целевые id
+    let targetIds: string[];
+    if (scope === 'following' && orig.recurrence_id) {
+      const { rows: seriesRows } = await query(
+        `SELECT id FROM calendar_events
+          WHERE recurrence_id = $1
+            AND start_at >= $2
+            AND deleted_at IS NULL
+          ORDER BY start_at`,
+        [orig.recurrence_id, orig.start_at]
+      );
+      targetIds = seriesRows.map((r: any) => r.id);
+    } else {
+      targetIds = [eventId];
+    }
+
+    // Если меняем дату/время и scope=following — сдвигаем все события на ту же дельту,
+    // чтобы сохранить расписание серии (например, перенос с 9:00 на 10:00 для всех будущих).
+    let newStartDate: Date | null = null;
+    let deltaMs = 0;
+    if (startAt !== undefined) {
+      const d = new Date(startAt);
+      if (isNaN(d.getTime())) {
+        res.status(400).json({ error: 'Некорректная дата' });
+        return;
+      }
+      newStartDate = d;
+      const origStart = new Date(orig.start_at);
+      deltaMs = d.getTime() - origStart.getTime();
+    }
+
+    const baseFields: string[] = [];
+    const baseValues: any[] = [];
+    let pIdx = 1;
 
     if (title !== undefined) {
       if (!title.trim()) {
         res.status(400).json({ error: 'Название не может быть пустым' });
         return;
       }
-      fields.push(`title = $${idx++}`);
-      values.push(title.trim());
+      baseFields.push(`title = $${pIdx++}`);
+      baseValues.push(title.trim());
     }
     if (description !== undefined) {
-      fields.push(`description = $${idx++}`);
-      values.push((description || '').trim() || null);
+      baseFields.push(`description = $${pIdx++}`);
+      baseValues.push((description || '').trim() || null);
     }
     if (link !== undefined) {
-      fields.push(`link = $${idx++}`);
-      values.push((link || '').trim() || null);
-    }
-    if (startAt !== undefined) {
-      const startDate = new Date(startAt);
-      if (isNaN(startDate.getTime())) {
-        res.status(400).json({ error: 'Некорректная дата' });
-        return;
-      }
-      fields.push(`start_at = $${idx++}`);
-      values.push(startDate.toISOString());
-      fields.push(`notified_1h_at = NULL`);
-      fields.push(`notified_5min_at = NULL`);
+      baseFields.push(`link = $${pIdx++}`);
+      baseValues.push((link || '').trim() || null);
     }
 
     if (audienceProvided) {
@@ -283,50 +422,79 @@ router.put('/events/:id', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Re
         res.status(400).json({ error: audErr });
         return;
       }
-      fields.push(`audience_type = $${idx++}`);
-      values.push(audience.audienceType);
+      baseFields.push(`audience_type = $${pIdx++}`);
+      baseValues.push(audience.audienceType);
     }
 
-    if (fields.length === 0) {
+    if (baseFields.length === 0 && newStartDate === null) {
       res.status(400).json({ error: 'Нет полей для обновления' });
       return;
     }
 
     await query('BEGIN');
     try {
-      values.push(eventId);
-      const { rows } = await query(
-        `UPDATE calendar_events SET ${fields.join(', ')}
-         WHERE id = $${idx} AND deleted_at IS NULL
-         RETURNING id, title, description, link,
-                   start_at AS "startAt",
-                   audience_type AS "audienceType",
-                   created_by AS "createdBy",
-                   created_at AS "createdAt"`,
-        values
-      );
+      for (const tid of targetIds) {
+        const fields = [...baseFields];
+        const values = [...baseValues];
+        let idx = pIdx;
 
-      if (rows.length === 0) {
-        await query('ROLLBACK');
-        res.status(404).json({ error: 'Событие не найдено' });
-        return;
+        if (newStartDate) {
+          if (tid === eventId) {
+            // Текущее: ставим выбранную дату как есть
+            fields.push(`start_at = $${idx++}`);
+            values.push(newStartDate.toISOString());
+          } else if (scope === 'following') {
+            // Сдвигаем относительно старой start_at этого события на ту же дельту
+            const { rows: tRows } = await query(
+              `SELECT start_at FROM calendar_events WHERE id = $1`,
+              [tid]
+            );
+            const shifted = new Date(new Date(tRows[0].start_at).getTime() + deltaMs);
+            fields.push(`start_at = $${idx++}`);
+            values.push(shifted.toISOString());
+          }
+          // Сбрасываем флаги нотификации, т.к. время поменялось
+          fields.push(`notified_1h_at = NULL`);
+          fields.push(`notified_5min_at = NULL`);
+        }
+
+        if (fields.length === 0) continue;
+
+        values.push(tid);
+        await query(
+          `UPDATE calendar_events SET ${fields.join(', ')}
+            WHERE id = $${idx} AND deleted_at IS NULL`,
+          values
+        );
+
+        if (audienceProvided) {
+          await setEventAudience(tid, {
+            audienceType: req.body.audienceType,
+            audienceUserIds: req.body.audienceUserIds,
+            audienceGroupIds: req.body.audienceGroupIds,
+          });
+        }
       }
-
-      if (audienceProvided) {
-        await setEventAudience(eventId, {
-          audienceType: req.body.audienceType,
-          audienceUserIds: req.body.audienceUserIds,
-          audienceGroupIds: req.body.audienceGroupIds,
-        });
-      }
-
       await query('COMMIT');
 
+      // Возвращаем обновлённое целевое событие
+      const { rows: updated } = await query(
+        `SELECT id, title, description, link,
+                start_at AS "startAt",
+                audience_type AS "audienceType",
+                recurrence_id AS "recurrenceId",
+                recurrence_pattern AS "recurrencePattern",
+                created_by AS "createdBy",
+                created_at AS "createdAt"
+           FROM calendar_events WHERE id = $1`,
+        [eventId]
+      );
       const aud = await fetchEventAudience(eventId);
       res.json({
-        ...rows[0],
+        ...updated[0],
         audienceUserIds: aud.userIds,
         audienceGroupIds: aud.groupIds,
+        affectedCount: targetIds.length,
       });
     } catch (err) {
       await query('ROLLBACK');
@@ -338,24 +506,44 @@ router.put('/events/:id', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Re
   }
 });
 
-// DELETE /api/calendar/events/:id
+// DELETE /api/calendar/events/:id?scope=this|following
 router.delete('/events/:id', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Response) => {
   try {
     const eventId = req.params.id as string;
+    const scope = (req.query.scope as string) === 'following' ? 'following' : 'this';
 
-    const { rows } = await query(
-      `UPDATE calendar_events SET deleted_at = NOW()
-       WHERE id = $1 AND deleted_at IS NULL
-       RETURNING id`,
+    const { rows: origRows } = await query(
+      `SELECT id, start_at, recurrence_id
+         FROM calendar_events
+        WHERE id = $1 AND deleted_at IS NULL`,
       [eventId]
     );
-
-    if (rows.length === 0) {
+    if (origRows.length === 0) {
       res.status(404).json({ error: 'Событие не найдено' });
       return;
     }
+    const orig = origRows[0];
 
-    res.json({ message: 'Событие удалено' });
+    let result;
+    if (scope === 'following' && orig.recurrence_id) {
+      result = await query(
+        `UPDATE calendar_events SET deleted_at = NOW()
+          WHERE recurrence_id = $1
+            AND start_at >= $2
+            AND deleted_at IS NULL
+        RETURNING id`,
+        [orig.recurrence_id, orig.start_at]
+      );
+    } else {
+      result = await query(
+        `UPDATE calendar_events SET deleted_at = NOW()
+          WHERE id = $1 AND deleted_at IS NULL
+        RETURNING id`,
+        [eventId]
+      );
+    }
+
+    res.json({ message: 'Событие удалено', affectedCount: result.rows.length });
   } catch (err) {
     console.error('Calendar delete error:', err);
     res.status(500).json({ error: 'Внутренняя ошибка сервера' });

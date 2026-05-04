@@ -20,6 +20,22 @@ function localInputToIso(local: string): string {
   return new Date(local).toISOString();
 }
 
+function dateToInput(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+// Пн, Вт, ..., Вс — но JS Date.getDay() считает 0=Вс
+const WEEKDAYS: { value: number; label: string }[] = [
+  { value: 1, label: 'Пн' },
+  { value: 2, label: 'Вт' },
+  { value: 3, label: 'Ср' },
+  { value: 4, label: 'Чт' },
+  { value: 5, label: 'Пт' },
+  { value: 6, label: 'Сб' },
+  { value: 0, label: 'Вс' },
+];
+
 export default function EventEditor({ initial, onCancel, onSave }: Props) {
   const [title, setTitle] = useState(initial?.title || '');
   const [description, setDescription] = useState(initial?.description || '');
@@ -39,6 +55,19 @@ export default function EventEditor({ initial, onCancel, onSave }: Props) {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [groups, setGroups] = useState<UserGroup[]>([]);
   const [usersFilter, setUsersFilter] = useState('');
+
+  // Повторение — только при создании. При редактировании показываем info, но не редактируем серию через эту форму.
+  const isEditing = !!initial;
+  const isPartOfSeries = !!initial?.recurrenceId;
+  const [recurrenceEnabled, setRecurrenceEnabled] = useState(false);
+  const [weekdays, setWeekdays] = useState<Set<number>>(new Set());
+  // Дата окончания повторения по умолчанию +30 дней от startLocal
+  const [recurrenceUntil, setRecurrenceUntil] = useState<string>(() => {
+    const base = initial ? new Date(initial.startAt) : new Date(Date.now() + 3600_000);
+    const end = new Date(base);
+    end.setDate(end.getDate() + 30);
+    return dateToInput(end);
+  });
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,6 +112,15 @@ export default function EventEditor({ initial, onCancel, onSave }: Props) {
     });
   };
 
+  const toggleWeekday = (day: number) => {
+    setWeekdays((prev) => {
+      const next = new Set(prev);
+      if (next.has(day)) next.delete(day);
+      else next.add(day);
+      return next;
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -104,6 +142,23 @@ export default function EventEditor({ initial, onCancel, onSave }: Props) {
       return;
     }
 
+    if (!isEditing && recurrenceEnabled) {
+      if (weekdays.size === 0) {
+        setError('Выберите хотя бы один день недели');
+        return;
+      }
+      if (!recurrenceUntil) {
+        setError('Укажите дату окончания повторения');
+        return;
+      }
+      const startDate = new Date(localInputToIso(startLocal));
+      const untilDate = new Date(`${recurrenceUntil}T23:59:59`);
+      if (untilDate.getTime() < startDate.getTime()) {
+        setError('Дата окончания повторения не может быть раньше начала');
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       await onSave({
@@ -114,6 +169,9 @@ export default function EventEditor({ initial, onCancel, onSave }: Props) {
         audienceType,
         audienceUserIds: audienceType === 'users' ? Array.from(selectedUserIds) : [],
         audienceGroupIds: audienceType === 'groups' ? Array.from(selectedGroupIds) : [],
+        recurrence: !isEditing && recurrenceEnabled
+          ? { weekdays: Array.from(weekdays), until: recurrenceUntil }
+          : null,
       });
     } catch (err: any) {
       setError(err?.response?.data?.error || 'Не удалось сохранить событие');
@@ -171,6 +229,58 @@ export default function EventEditor({ initial, onCancel, onSave }: Props) {
             onChange={(e) => setStartLocal(e.target.value)}
           />
         </label>
+
+        {!isEditing && (
+          <div className="event-editor-recurrence">
+            <label className="event-editor-recurrence-toggle">
+              <input
+                type="checkbox"
+                checked={recurrenceEnabled}
+                onChange={(e) => setRecurrenceEnabled(e.target.checked)}
+              />
+              <span>Повторять</span>
+            </label>
+
+            {recurrenceEnabled && (
+              <>
+                <div className="event-editor-weekdays">
+                  {WEEKDAYS.map((d) => (
+                    <label
+                      key={d.value}
+                      className={`event-editor-weekday ${weekdays.has(d.value) ? 'event-editor-weekday--active' : ''}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={weekdays.has(d.value)}
+                        onChange={() => toggleWeekday(d.value)}
+                      />
+                      {d.label}
+                    </label>
+                  ))}
+                </div>
+
+                <div className="event-editor-recurrence-until">
+                  <label htmlFor="rec-until">Повторять до</label>
+                  <input
+                    id="rec-until"
+                    type="date"
+                    value={recurrenceUntil}
+                    onChange={(e) => setRecurrenceUntil(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {isEditing && isPartOfSeries && (
+          <div className="event-editor-recurrence">
+            <div className="event-editor-recurrence-locked">
+              Это событие из повторяющейся серии. Изменение применится к выбранному
+              событию или ко всем последующим (выбор перед сохранением).
+            </div>
+          </div>
+        )}
 
         <label className="event-editor-field">
           <span>Описание</span>
