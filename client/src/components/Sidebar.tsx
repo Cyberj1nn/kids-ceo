@@ -19,6 +19,7 @@ const TAB_ICONS: Record<string, string> = {
   'beseda-opora': '💬',
   'beseda-otnosheniya': '💬',
   'beseda-finansy': '💬',
+  'beseda-fokus': '💬',
 };
 
 interface SidebarProps {

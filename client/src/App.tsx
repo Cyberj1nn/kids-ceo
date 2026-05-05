@@ -81,6 +81,7 @@ export default function App() {
                 <Route path="beseda-opora" element={<GeneralChatPage />} />
                 <Route path="beseda-otnosheniya" element={<GeneralChatPage />} />
                 <Route path="beseda-finansy" element={<GeneralChatPage />} />
+                <Route path="beseda-fokus" element={<GeneralChatPage />} />
                 <Route path="personal-chat" element={<PersonalChatPage />} />
                 <Route path="dtp" element={<DtpPage />} />
                 <Route path="call-tracker" element={<CallTrackerPage />} />

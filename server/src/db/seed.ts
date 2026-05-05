@@ -22,6 +22,7 @@ async function seed() {
     { slug: 'beseda-opora',      name: 'Беседа Опора',     sort_order: 13 },
     { slug: 'beseda-otnosheniya',name: 'Беседа Отношения', sort_order: 14 },
     { slug: 'beseda-finansy',    name: 'Беседа Финансы',   sort_order: 15 },
+    { slug: 'beseda-fokus',      name: 'Беседа Фокус',     sort_order: 16 },
   ];
 
   for (const tab of tabs) {
@@ -183,6 +184,7 @@ async function seed() {
     { id: '00000000-0000-0000-0000-000000000011', name: 'Беседа Опора',     tab_slug: 'beseda-opora'       },
     { id: '00000000-0000-0000-0000-000000000012', name: 'Беседа Отношения', tab_slug: 'beseda-otnosheniya' },
     { id: '00000000-0000-0000-0000-000000000013', name: 'Беседа Финансы',   tab_slug: 'beseda-finansy'     },
+    { id: '00000000-0000-0000-0000-000000000014', name: 'Беседа Фокус',     tab_slug: 'beseda-fokus'       },
   ];
 
   for (const room of programChats) {
@@ -205,7 +207,8 @@ async function seed() {
             '00000000-0000-0000-0000-000000000010',
             '00000000-0000-0000-0000-000000000011',
             '00000000-0000-0000-0000-000000000012',
-            '00000000-0000-0000-0000-000000000013'
+            '00000000-0000-0000-0000-000000000013',
+            '00000000-0000-0000-0000-000000000014'
         )
         AND u.role IN ('admin','mentor','superadmin')
         AND u.deleted_at IS NULL
@@ -223,6 +226,7 @@ async function seed() {
     { name: 'Программа Опора',     tabSlugs: ['beseda-opora'] },
     { name: 'Программа Отношения', tabSlugs: ['beseda-otnosheniya'] },
     { name: 'Программа Финансы',   tabSlugs: ['beseda-finansy'] },
+    { name: 'Фокус на результат. Предприниматели', tabSlugs: ['beseda-fokus'] },
   ];
 
   for (const spec of groupSpecs) {

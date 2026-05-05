@@ -7,6 +7,7 @@ const TAB_TITLES: Record<string, string> = {
   'beseda-opora': 'Беседа Опора',
   'beseda-otnosheniya': 'Беседа Отношения',
   'beseda-finansy': 'Беседа Финансы',
+  'beseda-fokus': 'Беседа Фокус',
   'lectures': 'Лекции',
   'instructions': 'Инструкции',
   'podcasts': 'Подкасты',
