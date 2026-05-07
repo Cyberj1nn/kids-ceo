@@ -35,7 +35,7 @@ export default function CallTrackerPage() {
 
   useEffect(() => {
     if (!isAdmin) return;
-    api.get('/users').then(({ data }) => {
+    api.get('/users', { params: { tab: 'call-tracker' } }).then(({ data }) => {
       const filtered = (data as UserOption[]).filter((u) => u.role === 'user');
       setUsers(filtered);
       // Автоматически выбираем первого пользователя
