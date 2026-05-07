@@ -49,7 +49,10 @@
   color: #6c63ff;
 }
 
-.ct-user-tab--active {
+.ct-user-tab--active,
+.ct-user-tab--active:hover,
+.ct-user-tab--active:focus,
+.ct-user-tab--active:active {
   background: #6c63ff;
   color: #fff;
   border-color: #6c63ff;
