@@ -6,8 +6,11 @@ import {
   deleteGroup,
   getGroupMembers,
   setGroupMembers,
+  getGroupTabs,
+  setGroupTabs,
   type UserGroup,
   type GroupMember,
+  type GroupTabAccess,
 } from '../api/groups';
 import { getUsers, type UserItem } from '../api/admin';
 import './GroupsAdmin.css';
@@ -30,6 +33,11 @@ export default function GroupsAdmin() {
   const [memberIds, setMemberIds] = useState<Set<string>>(new Set());
   const [membersSaving, setMembersSaving] = useState(false);
   const [membersFilter, setMembersFilter] = useState('');
+
+  // Настройки доступа к вкладкам
+  const [tabsOpenFor, setTabsOpenFor] = useState<UserGroup | null>(null);
+  const [groupTabs, setGroupTabsState] = useState<GroupTabAccess[]>([]);
+  const [tabsSaving, setTabsSaving] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -131,6 +139,41 @@ export default function GroupsAdmin() {
     }
   };
 
+  const openTabs = async (g: UserGroup) => {
+    setTabsOpenFor(g);
+    setGroupTabsState([]);
+    try {
+      const t = await getGroupTabs(g.id);
+      setGroupTabsState(t);
+    } catch {
+      setGroupTabsState([]);
+    }
+  };
+
+  const toggleTab = (tabId: number) => {
+    setGroupTabsState((prev) =>
+      prev.map((t) => (t.id === tabId ? { ...t, hasAccess: !t.hasAccess } : t))
+    );
+  };
+
+  const setAllTabs = (open: boolean) => {
+    setGroupTabsState((prev) => prev.map((t) => ({ ...t, hasAccess: open })));
+  };
+
+  const saveTabs = async () => {
+    if (!tabsOpenFor) return;
+    setTabsSaving(true);
+    try {
+      const tabIds = groupTabs.filter((t) => t.hasAccess).map((t) => t.id);
+      await setGroupTabs(tabsOpenFor.id, tabIds);
+      setTabsOpenFor(null);
+    } catch (err: any) {
+      alert(err?.response?.data?.error || 'Ошибка сохранения');
+    } finally {
+      setTabsSaving(false);
+    }
+  };
+
   const filteredUsers = users.filter((u) => {
     if (!membersFilter.trim()) return true;
     const q = membersFilter.trim().toLowerCase();
@@ -168,6 +211,7 @@ export default function GroupsAdmin() {
               </div>
               <div className="groups-admin-card-actions">
                 <button className="admin-btn-small" onClick={() => openMembers(g)}>Участники</button>
+                <button className="admin-btn-small" onClick={() => openTabs(g)}>Настройки</button>
                 <button className="admin-btn-small" onClick={() => openRename(g)}>Переименовать</button>
                 <button
                   className="admin-btn-small admin-btn-small--danger"
@@ -265,6 +309,58 @@ export default function GroupsAdmin() {
                 disabled={membersSaving}
               >
                 {membersSaving ? 'Сохранение...' : 'Сохранить'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Настройки доступа к вкладкам */}
+      {tabsOpenFor && (
+        <div className="admin-modal-overlay" onClick={() => !tabsSaving && setTabsOpenFor(null)}>
+          <div className="admin-modal groups-admin-tabs-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Доступ к вкладкам: {tabsOpenFor.name}</h2>
+            <p className="groups-admin-tabs-hint">
+              Изменения применятся ко всем участникам группы. Вкладки, оставшиеся
+              у пользователя через другие группы, не закроются.
+            </p>
+
+            <div className="admin-access-bulk groups-admin-tabs-bulk">
+              <button className="admin-btn-small" onClick={() => setAllTabs(true)}>Открыть все</button>
+              <button className="admin-btn-small" onClick={() => setAllTabs(false)}>Закрыть все</button>
+            </div>
+
+            <div className="admin-access-grid">
+              {groupTabs.length === 0 && (
+                <div className="admin-loading">Загрузка...</div>
+              )}
+              {groupTabs.map((tab) => (
+                <label key={tab.id} className="admin-access-item">
+                  <input
+                    type="checkbox"
+                    checked={tab.hasAccess}
+                    onChange={() => toggleTab(tab.id)}
+                  />
+                  <span>{tab.name}</span>
+                </label>
+              ))}
+            </div>
+
+            <div className="admin-form-actions">
+              <button
+                type="button"
+                className="admin-btn-secondary"
+                onClick={() => setTabsOpenFor(null)}
+                disabled={tabsSaving}
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                className="admin-btn-primary"
+                onClick={saveTabs}
+                disabled={tabsSaving || groupTabs.length === 0}
+              >
+                {tabsSaving ? 'Сохранение...' : 'Сохранить'}
               </button>
             </div>
           </div>

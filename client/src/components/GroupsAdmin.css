@@ -132,6 +132,26 @@
   font-family: ui-monospace, SFMono-Regular, monospace;
 }
 
+.groups-admin-tabs-modal {
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 32px);
+}
+
+.groups-admin-tabs-hint {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 12px;
+  line-height: 1.4;
+}
+
+.groups-admin-tabs-bulk {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
 @media (max-width: 768px) {
   .groups-admin-card {
     flex-direction: column;

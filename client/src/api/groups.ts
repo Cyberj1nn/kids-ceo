@@ -54,6 +54,25 @@ export async function setGroupMembers(groupId: string, userIds: string[]): Promi
   await api.put(`/groups/${groupId}/members`, { userIds });
 }
 
+// ----- Group tab defaults -----
+
+export interface GroupTabAccess {
+  id: number;
+  slug: string;
+  name: string;
+  sortOrder: number;
+  hasAccess: boolean;
+}
+
+export async function getGroupTabs(groupId: string): Promise<GroupTabAccess[]> {
+  const { data } = await api.get<GroupTabAccess[]>(`/groups/${groupId}/tabs`);
+  return data;
+}
+
+export async function setGroupTabs(groupId: string, tabIds: number[]): Promise<void> {
+  await api.put(`/groups/${groupId}/tabs`, { tabIds });
+}
+
 // ----- User-side: groups of one user -----
 
 export async function getUserGroups(userId: string): Promise<UserGroupMembership[]> {

@@ -199,4 +199,173 @@ router.put('/:id/members', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: R
   }
 });
 
+// ========================
+// GET /api/groups/:id/tabs
+// Список всех вкладок с признаком hasAccess (входит ли в дефолты группы)
+// ========================
+router.get('/:id/tabs', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Response) => {
+  try {
+    const groupId = req.params.id as string;
+
+    const { rows: groupRows } = await query(
+      `SELECT id FROM user_groups WHERE id = $1 AND deleted_at IS NULL`,
+      [groupId]
+    );
+    if (groupRows.length === 0) {
+      res.status(404).json({ error: 'Группа не найдена' });
+      return;
+    }
+
+    const { rows } = await query(
+      `SELECT t.id, t.slug, t.name, t.sort_order AS "sortOrder",
+              EXISTS(
+                SELECT 1 FROM user_group_tab_defaults d
+                 WHERE d.group_id = $1 AND d.tab_id = t.id
+              ) AS "hasAccess"
+         FROM tabs t
+        ORDER BY t.sort_order`,
+      [groupId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error('Group tabs error:', err);
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+  }
+});
+
+// ========================
+// PUT /api/groups/:id/tabs
+// Заменяет дефолтные вкладки группы и массово синхронизирует доступ всех её участников.
+// Логика снятия: если пользователь после изменения уже не получает вкладку
+// ни через одну из своих групп — доступ закрывается. Ручные оверрайды вкладок,
+// не входивших в эту группу, не трогаем.
+// ========================
+router.put('/:id/tabs', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Response) => {
+  try {
+    const groupId = req.params.id as string;
+    const { tabIds } = req.body;
+    const grantedBy = req.user!.userId;
+
+    if (!Array.isArray(tabIds) || tabIds.some((x) => !Number.isInteger(x))) {
+      res.status(400).json({ error: 'tabIds должен быть массивом целых чисел' });
+      return;
+    }
+
+    const { rows: groupRows } = await query(
+      `SELECT id FROM user_groups WHERE id = $1 AND deleted_at IS NULL`,
+      [groupId]
+    );
+    if (groupRows.length === 0) {
+      res.status(404).json({ error: 'Группа не найдена' });
+      return;
+    }
+
+    await query('BEGIN');
+    try {
+      // 1. Старые дефолты, которые больше не нужны (для аккуратного снятия)
+      const { rows: removedRows } = await query(
+        `SELECT tab_id FROM user_group_tab_defaults
+          WHERE group_id = $1 AND tab_id <> ALL($2::int[])`,
+        [groupId, tabIds]
+      );
+      const removedTabIds: number[] = removedRows.map((r: any) => r.tab_id);
+
+      // 2. Полная замена дефолтов группы
+      await query(`DELETE FROM user_group_tab_defaults WHERE group_id = $1`, [groupId]);
+      for (const tabId of tabIds) {
+        await query(
+          `INSERT INTO user_group_tab_defaults (group_id, tab_id) VALUES ($1, $2)
+           ON CONFLICT DO NOTHING`,
+          [groupId, tabId]
+        );
+      }
+
+      // 3. Открыть выбранные вкладки всем текущим участникам
+      if (tabIds.length > 0) {
+        await query(
+          `INSERT INTO user_tab_access (user_id, tab_id, granted_by)
+           SELECT m.user_id, ut.tab_id, $2
+             FROM user_group_members m
+             CROSS JOIN UNNEST($3::int[]) AS ut(tab_id)
+            WHERE m.group_id = $1
+           ON CONFLICT DO NOTHING`,
+          [groupId, grantedBy, tabIds]
+        );
+
+        // 3a. Синхронизировать членство в general-чатах для добавленных вкладок
+        await query(
+          `INSERT INTO chat_room_members (chat_room_id, user_id)
+           SELECT cr.id, m.user_id
+             FROM user_group_members m
+             CROSS JOIN UNNEST($2::int[]) AS ut(tab_id)
+             JOIN tabs t ON t.id = ut.tab_id
+             JOIN chat_rooms cr ON cr.tab_slug = t.slug AND cr.type = 'general'
+            WHERE m.group_id = $1
+           ON CONFLICT DO NOTHING`,
+          [groupId, tabIds]
+        );
+      }
+
+      // 4. Снять доступ к вкладкам, которые группа больше не предоставляет —
+      //    но только если ни одна другая группа пользователя их тоже не предоставляет
+      if (removedTabIds.length > 0) {
+        await query(
+          `DELETE FROM user_tab_access uta
+            USING user_group_members mm
+            WHERE uta.user_id = mm.user_id
+              AND mm.group_id = $1
+              AND uta.tab_id = ANY($2::int[])
+              AND NOT EXISTS (
+                SELECT 1
+                  FROM user_group_members m2
+                  JOIN user_group_tab_defaults d2 ON d2.group_id = m2.group_id
+                  JOIN user_groups g2 ON g2.id = m2.group_id AND g2.deleted_at IS NULL
+                 WHERE m2.user_id = uta.user_id
+                   AND d2.tab_id = uta.tab_id
+                   AND m2.group_id <> $1
+              )`,
+          [groupId, removedTabIds]
+        );
+
+        // 4a. Снять членство в general-чатах для снятых вкладок (только role='user',
+        //     чтобы не задеть admin/mentor, у которых membership ставится глобально)
+        await query(
+          `DELETE FROM chat_room_members crm
+            USING users u, user_group_members mm,
+                  chat_rooms cr, tabs t
+            WHERE crm.user_id = u.id
+              AND u.role = 'user'
+              AND crm.user_id = mm.user_id
+              AND mm.group_id = $1
+              AND crm.chat_room_id = cr.id
+              AND cr.type = 'general'
+              AND cr.tab_slug = t.slug
+              AND t.id = ANY($2::int[])
+              AND NOT EXISTS (
+                SELECT 1
+                  FROM user_group_members m2
+                  JOIN user_group_tab_defaults d2 ON d2.group_id = m2.group_id
+                  JOIN user_groups g2 ON g2.id = m2.group_id AND g2.deleted_at IS NULL
+                 WHERE m2.user_id = crm.user_id
+                   AND d2.tab_id = t.id
+                   AND m2.group_id <> $1
+              )`,
+          [groupId, removedTabIds]
+        );
+      }
+
+      await query('COMMIT');
+    } catch (err) {
+      await query('ROLLBACK');
+      throw err;
+    }
+
+    res.json({ message: 'Доступ группы обновлён', tabIds });
+  } catch (err) {
+    console.error('Group tabs update error:', err);
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+  }
+});
+
 export default router;
