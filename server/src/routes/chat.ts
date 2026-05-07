@@ -44,6 +44,17 @@ router.get('/rooms', authJWT, async (req: AuthRequest, res: Response) => {
        FROM chat_rooms cr
        INNER JOIN chat_room_members crm ON crm.chat_room_id = cr.id
        WHERE crm.user_id = $1
+         AND (
+           cr.type <> 'personal'
+           OR EXISTS (
+             SELECT 1
+               FROM chat_room_members crm2
+               JOIN users u2 ON u2.id = crm2.user_id
+              WHERE crm2.chat_room_id = cr.id
+                AND u2.role = 'user'
+                AND u2.deleted_at IS NULL
+           )
+         )
        ORDER BY
          (SELECT m.created_at FROM messages m WHERE m.chat_room_id = cr.id ORDER BY m.created_at DESC LIMIT 1) DESC NULLS LAST,
          cr.created_at DESC`,

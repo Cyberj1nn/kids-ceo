@@ -17,8 +17,22 @@ const router = Router();
 const ADMIN_ROLES = roleCheck(['superadmin', 'admin', 'mentor']);
 
 // GET /api/users
-router.get('/', authJWT, ADMIN_ROLES, async (_req: AuthRequest, res: Response) => {
+router.get('/', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Response) => {
   try {
+    const tabSlug = (req.query.tab as string | undefined)?.trim();
+
+    const params: any[] = [];
+    let tabFilter = '';
+    if (tabSlug) {
+      params.push(tabSlug);
+      tabFilter = `
+         AND EXISTS (
+           SELECT 1 FROM user_tab_access uta
+             JOIN tabs t ON t.id = uta.tab_id
+            WHERE uta.user_id = u.id AND t.slug = $${params.length}
+         )`;
+    }
+
     const { rows } = await query(
       `SELECT u.id,
               u.first_name AS "firstName",
@@ -36,8 +50,9 @@ router.get('/', authJWT, ADMIN_ROLES, async (_req: AuthRequest, res: Response) =
                 '[]'::json
               ) AS groups
        FROM users u
-       WHERE u.deleted_at IS NULL
-       ORDER BY u.last_name, u.first_name`
+       WHERE u.deleted_at IS NULL${tabFilter}
+       ORDER BY u.last_name, u.first_name`,
+      params
     );
     res.json(rows);
   } catch (err) {

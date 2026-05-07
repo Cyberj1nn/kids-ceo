@@ -70,10 +70,10 @@ export default function DtpPage() {
 
   const dates = getWeekDates(year, month, week);
 
-  // Загрузить список пользователей (только role=user) для админов
+  // Загрузить список пользователей с доступом к ДТП (только role=user) для админов
   useEffect(() => {
     if (!isAdmin) return;
-    api.get('/users').then(({ data }) => {
+    api.get('/users', { params: { tab: 'dtp' } }).then(({ data }) => {
       const filtered = (data as UserOption[]).filter((u) => u.role === 'user');
       setUsers(filtered);
       // Автоматически выбираем первого пользователя

@@ -327,7 +327,7 @@ export default function ContentEditor({
                       type="url"
                       value={block.content}
                       onChange={(e) => updateBlock(index, { content: e.target.value })}
-                      placeholder="https://rutube.ru/video/..."
+                      placeholder="https://rutube.ru/... · youtube.com/... · vk.com/video..."
                       className="block-url-input"
                     />
                     {block.content.trim() && (
