@@ -13,11 +13,20 @@ interface EmbedInfo {
 function getEmbedInfo(rawUrl: string): EmbedInfo | null {
   const url = rawUrl.trim();
 
-  // Rutube — https://rutube.ru/video/XXXX/ или https://rutube.ru/play/embed/XXXX
-  const rutube = url.match(/rutube\.ru\/(?:video|play\/embed)\/([a-zA-Z0-9]+)/i);
+  // Rutube — публичные и приватные видео:
+  //   https://rutube.ru/video/<hash>/
+  //   https://rutube.ru/video/private/<hash>/?p=<token>
+  //   https://rutube.ru/play/embed/<hash>?p=<token>
+  // Приватный токен ?p=... ОБЯЗАТЕЛЕН в embed-URL — без него плеер пишет
+  // «Данное видео временно недоступно».
+  const rutube = url.match(
+    /rutube\.ru\/(?:video\/private|video|play\/embed)\/([a-z0-9]{16,})/i
+  );
   if (rutube) {
+    const tokenMatch = url.match(/[?&]p=([a-zA-Z0-9_-]+)/);
+    const token = tokenMatch ? `?p=${tokenMatch[1]}` : '';
     return {
-      src: `https://rutube.ru/play/embed/${rutube[1]}`,
+      src: `https://rutube.ru/play/embed/${rutube[1]}${token}`,
       allow: 'clipboard-write; autoplay; fullscreen',
       label: 'Открыть на Rutube',
     };
