@@ -126,6 +126,11 @@ export default function AdminPage() {
         userId = editingUser.id;
       } else {
         if (!password) { setFormError('Пароль обязателен'); setSaving(false); return; }
+        if (password.length < 6) {
+          setFormError('Пароль должен содержать минимум 6 символов');
+          setSaving(false);
+          return;
+        }
         const created = await createUser({ firstName, lastName, login, password, role });
         userId = created.id;
       }
@@ -267,8 +272,8 @@ export default function AdminPage() {
                   </div>
                   {!editingUser && (
                     <div className="admin-form-field">
-                      <label>Пароль</label>
-                      <input type="text" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                      <label>Пароль (минимум 6 символов)</label>
+                      <input type="text" minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} required />
                     </div>
                   )}
                   <div className="admin-form-field">

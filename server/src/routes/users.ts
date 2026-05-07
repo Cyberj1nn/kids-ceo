@@ -72,6 +72,11 @@ router.post('/', authJWT, ADMIN_ROLES, async (req: AuthRequest, res: Response) =
       return;
     }
 
+    if (typeof password !== 'string' || password.length < 6) {
+      res.status(400).json({ error: 'Пароль должен содержать минимум 6 символов' });
+      return;
+    }
+
     // Проверка прав на назначение роли
     const targetRole = role || 'user';
     if (['admin', 'mentor', 'superadmin'].includes(targetRole) && currentRole !== 'superadmin') {
